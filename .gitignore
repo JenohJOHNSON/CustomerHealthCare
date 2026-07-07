@@ -1,0 +1,20 @@
+node_modules/
+.next/
+.vercel/
+out/
+dist/
+build/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+logs/
+tsconfig.tsbuildinfo
+# Legacy local draft; README.md is the project readme.
+readme
+.DS_Store
