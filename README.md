@@ -195,8 +195,10 @@ About (/about)
 │   │   └── airbyte-sync/route.ts      # Optional Airbyte sync trigger
 │   ├── components/
 │   │   ├── SiteNav.tsx                # Shared navigation + language switcher
+│   │   ├── SiteLogo.tsx               # Reusable Customer Health logo mark
+│   │   ├── SiteFooter.tsx             # Shared footer with portfolio profile links
 │   │   ├── Chatbot.tsx                # Chat UI with basic bold markdown rendering
-│   │   ├── ChurnDrivers.tsx           # Clickable churn-driver explanation popups
+│   │   ├── ChurnDrivers.tsx           # Interactive churn-driver bar chart + popups
 │   │   └── AirbyteSyncButton.tsx      # Sync trigger UI
 │   ├── globals.css                    # Shared styling
 │   └── layout.tsx                     # Root app layout

@@ -1,6 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { localeFor, type Lang } from "@/lib/i18n";
 
 type DriverRow = {
@@ -12,6 +23,14 @@ type DriverExplanation = {
   category?: string;
   field: string;
   fieldDescription: string;
+  readableName: string;
+};
+
+type ChartDriver = {
+  absImportance: number;
+  coefficientLabel: string;
+  feature: string;
+  importanceValue: number;
   readableName: string;
 };
 
@@ -60,7 +79,12 @@ const featureDescriptions = {
     numericMeaning: (field: string) => `The numeric value for ${field}.`,
     note:
       "This is an association learned by logistic regression. It helps explain the prediction, but it does not prove direct cause and effect.",
-    clickHint: "Click a driver to see what it means.",
+    clickHint:
+      "Bar length shows influence strength. Click a bar to see what it means.",
+    chartAxis: "Influence strength",
+    positiveShort: "Raises churn risk",
+    negativeShort: "Lowers churn risk",
+    neutralShort: "Nearly neutral",
   },
   fr: {
     fields: {
@@ -106,7 +130,12 @@ const featureDescriptions = {
     numericMeaning: (field: string) => `La valeur numérique de ${field}.`,
     note:
       "C'est une association apprise par la régression logistique. Elle aide à expliquer la prédiction, mais ne prouve pas une cause directe.",
-    clickHint: "Cliquez sur un facteur pour voir ce qu'il signifie.",
+    clickHint:
+      "La longueur de la barre montre la force d'influence. Cliquez sur une barre pour voir ce qu'elle signifie.",
+    chartAxis: "Force d'influence",
+    positiveShort: "Augmente le risque de churn",
+    negativeShort: "Réduit le risque de churn",
+    neutralShort: "Presque neutre",
   },
 };
 
@@ -168,22 +197,78 @@ function parseDriver(feature: string, lang: Lang): DriverExplanation {
   };
 }
 
-function driverStrength(driver: DriverRow, maxImportance: number) {
-  const importance = Math.abs(Number(driver.importance));
-
-  if (!maxImportance || !Number.isFinite(importance)) {
-    return "0%";
-  }
-
-  return `${Math.max(8, Math.round((importance / maxImportance) * 100))}%`;
-}
-
 function directionText(value: number, lang: Lang) {
   const copy = featureDescriptions[lang];
 
   if (value > 0.001) return copy.positive;
   if (value < -0.001) return copy.negative;
   return copy.neutral;
+}
+
+function shortDirectionText(value: number, lang: Lang) {
+  const copy = featureDescriptions[lang];
+
+  if (value > 0.001) return copy.positiveShort;
+  if (value < -0.001) return copy.negativeShort;
+  return copy.neutralShort;
+}
+
+function driverColor(value: number) {
+  if (value > 0.001) return "#b42318";
+  if (value < -0.001) return "#0f766e";
+  return "#617064";
+}
+
+function formatCoefficient(value: number, lang: Lang) {
+  return value.toLocaleString(localeFor(lang), {
+    maximumFractionDigits: 4,
+    minimumFractionDigits: 4,
+  });
+}
+
+function getChartFeature(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  if ("feature" in value && typeof value.feature === "string") {
+    return value.feature;
+  }
+
+  if ("payload" in value) {
+    return getChartFeature(value.payload);
+  }
+
+  return null;
+}
+
+function DriverTooltip({
+  active,
+  lang,
+  payload,
+}: {
+  active?: boolean;
+  lang: Lang;
+  payload?: Array<{ payload?: ChartDriver }>;
+}) {
+  const copy = featureDescriptions[lang];
+  const row = active ? payload?.[0]?.payload : undefined;
+
+  if (!row) {
+    return null;
+  }
+
+  return (
+    <div className="driver-tooltip">
+      <strong>{row.readableName}</strong>
+      <span>
+        {copy.coefficient}: {row.coefficientLabel}
+      </span>
+      <span>
+        {copy.direction}: {shortDirectionText(row.importanceValue, lang)}
+      </span>
+    </div>
+  );
 }
 
 export default function ChurnDrivers({
@@ -197,6 +282,29 @@ export default function ChurnDrivers({
 }) {
   const copy = featureDescriptions[lang];
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const chartData = useMemo(
+    () =>
+      drivers.map((driver) => {
+        const explanation = parseDriver(driver.feature, lang);
+        const importanceValue = Number(driver.importance);
+        const safeImportance = Number.isFinite(importanceValue) ? importanceValue : 0;
+
+        return {
+          absImportance: Math.abs(safeImportance),
+          coefficientLabel: formatCoefficient(safeImportance, lang),
+          feature: driver.feature,
+          importanceValue: safeImportance,
+          readableName: explanation.readableName,
+        };
+      }),
+    [drivers, lang],
+  );
+  const chartHeight = Math.max(320, chartData.length * 46 + 70);
+  const domainMax = Math.max(
+    maxDriverImportance,
+    ...chartData.map((driver) => driver.absImportance),
+    0.01,
+  );
   const selectedDriver = drivers.find((driver) => driver.feature === selectedFeature);
   const selectedExplanation = useMemo(
     () => (selectedDriver ? parseDriver(selectedDriver.feature, lang) : null),
@@ -207,33 +315,89 @@ export default function ChurnDrivers({
   return (
     <>
       <p className="helper-text">{copy.clickHint}</p>
-      <div className="driver-list">
-        {drivers.map((driver) => {
-          const explanation = parseDriver(driver.feature, lang);
-
-          return (
-            <button
-              className="driver-row driver-button"
-              key={driver.feature}
-              onClick={() => setSelectedFeature(driver.feature)}
-              type="button"
-            >
-              <div className="driver-meta">
-                <span>{explanation.readableName}</span>
-                <span>{Number(driver.importance).toFixed(4)}</span>
-              </div>
-              <div className="driver-original">{driver.feature}</div>
-              <div className="bar" aria-hidden="true">
-                <div
-                  className="bar-fill"
-                  style={{
-                    width: driverStrength(driver, maxDriverImportance),
+      <div className="driver-chart-card">
+        <div className="driver-chart-scroll">
+          <div className="driver-chart-canvas" style={{ height: chartHeight }}>
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart
+                barCategoryGap={10}
+                data={chartData}
+                layout="vertical"
+                margin={{ bottom: 28, left: 8, right: 78, top: 8 }}
+              >
+                <CartesianGrid horizontal={false} stroke="#dce4dc" strokeDasharray="3 3" />
+                <XAxis
+                  axisLine={false}
+                  dataKey="absImportance"
+                  domain={[0, domainMax]}
+                  label={{
+                    fill: "#617064",
+                    offset: -14,
+                    position: "insideBottom",
+                    value: copy.chartAxis,
                   }}
+                  tick={{ fill: "#617064", fontSize: 12 }}
+                  tickFormatter={(value) =>
+                    Number(value).toLocaleString(localeFor(lang), {
+                      maximumFractionDigits: 2,
+                    })
+                  }
+                  tickLine={false}
+                  type="number"
                 />
-              </div>
-            </button>
-          );
-        })}
+                <YAxis
+                  axisLine={false}
+                  dataKey="readableName"
+                  interval={0}
+                  tick={{ fill: "#17211b", fontSize: 12, fontWeight: 700 }}
+                  tickLine={false}
+                  type="category"
+                  width={178}
+                />
+                <Tooltip
+                  content={<DriverTooltip lang={lang} />}
+                  cursor={{ fill: "rgba(15, 118, 110, 0.08)" }}
+                />
+                <Bar
+                  dataKey="absImportance"
+                  name={copy.chartAxis}
+                  onClick={(entry) => {
+                    const feature = getChartFeature(entry);
+
+                    if (feature) {
+                      setSelectedFeature(feature);
+                    }
+                  }}
+                  radius={[0, 7, 7, 0]}
+                >
+                  {chartData.map((driver) => (
+                    <Cell
+                      fill={driverColor(driver.importanceValue)}
+                      key={driver.feature}
+                      stroke={selectedFeature === driver.feature ? "#17211b" : undefined}
+                      strokeWidth={selectedFeature === driver.feature ? 2 : 0}
+                    />
+                  ))}
+                  <LabelList
+                    className="driver-chart-label"
+                    dataKey="coefficientLabel"
+                    position="right"
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="driver-chart-legend">
+          <span>
+            <i className="legend-swatch risk-up" />
+            {copy.positiveShort}
+          </span>
+          <span>
+            <i className="legend-swatch risk-down" />
+            {copy.negativeShort}
+          </span>
+        </div>
       </div>
 
       {selectedDriver && selectedExplanation ? (
@@ -280,12 +444,7 @@ export default function ChurnDrivers({
               </p>
               <p>
                 <strong>{copy.coefficient}</strong>
-                <span>
-                  {selectedImportance.toLocaleString(localeFor(lang), {
-                    maximumFractionDigits: 4,
-                    minimumFractionDigits: 4,
-                  })}
-                </span>
+                <span>{formatCoefficient(selectedImportance, lang)}</span>
               </p>
               <p>
                 <strong>{copy.original}</strong>

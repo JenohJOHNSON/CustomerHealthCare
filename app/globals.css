@@ -415,56 +415,73 @@ tr:last-child td {
   background: #dcfce7;
 }
 
-.driver-list {
-  display: grid;
-  gap: 12px;
-}
-
-.driver-row {
-  width: 100%;
+.driver-chart-card {
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 13px;
+  padding: 14px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.driver-button {
-  color: inherit;
-  text-align: left;
+.driver-chart-scroll {
+  overflow-x: auto;
 }
 
-.driver-button:hover {
-  border-color: rgba(15, 118, 110, 0.42);
-  background: #fbfdfb;
+.driver-chart-canvas {
+  min-width: 620px;
 }
 
-.driver-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 800;
+.driver-chart-label {
+  fill: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 850;
 }
 
-.driver-original {
-  margin-bottom: 8px;
+.driver-tooltip {
+  display: grid;
+  gap: 5px;
+  max-width: 280px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #ffffff;
+  box-shadow: var(--shadow);
+  line-height: 1.4;
+}
+
+.driver-tooltip span {
   color: var(--muted);
-  font-size: 0.78rem;
-  overflow-wrap: anywhere;
+  font-size: 0.86rem;
 }
 
-.bar {
-  height: 8px;
-  overflow: hidden;
+.driver-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.driver-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend-swatch {
+  width: 11px;
+  height: 11px;
   border-radius: 999px;
-  background: #e4ebe4;
 }
 
-.bar-fill {
-  height: 100%;
-  border-radius: inherit;
+.legend-swatch.risk-up {
+  background: var(--danger);
+}
+
+.legend-swatch.risk-down {
   background: var(--accent);
 }
 
