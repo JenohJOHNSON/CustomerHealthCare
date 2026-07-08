@@ -11,6 +11,32 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
+function chatbotFailureAnswer(error: unknown) {
+  const message = errorMessage(error);
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("insufficient_quota") ||
+    lowerMessage.includes("exceeded your current quota")
+  ) {
+    return "The dashboard data is working, but the OpenAI API key has no available quota. Add billing or credits in the OpenAI Platform, then redeploy Vercel.";
+  }
+
+  if (
+    lowerMessage.includes("invalid_api_key") ||
+    lowerMessage.includes("incorrect api key") ||
+    lowerMessage.includes("401")
+  ) {
+    return "The dashboard data is working, but the OpenAI API key is invalid. Create a new OpenAI API key, update OPENAI_API_KEY in Vercel, and redeploy.";
+  }
+
+  if (lowerMessage.includes("model") && lowerMessage.includes("not found")) {
+    return "The dashboard data is working, but the selected OpenAI model is not available for this API key. Check OPENAI_MODEL in Vercel.";
+  }
+
+  return "I had a problem answering the question. Check the server logs, database tables, and environment variables.";
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ChatRequest;
@@ -98,8 +124,7 @@ export async function POST(request: Request) {
 
     return Response.json(
       {
-        answer:
-          "I had a problem answering the question. Check the server logs, database tables, and environment variables.",
+        answer: chatbotFailureAnswer(error),
         detail: errorMessage(error),
       },
       { status: 500 },
