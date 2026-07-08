@@ -1,3 +1,4 @@
+import SiteFooter from "../components/SiteFooter";
 import SiteNav from "../components/SiteNav";
 import {
   getPageLang,
@@ -511,6 +512,8 @@ export default async function CustomersPage({ searchParams }: LangPageProps) {
           )}
         </div>
       </section>
+
+      <SiteFooter lang={lang} />
     </main>
   );
 }

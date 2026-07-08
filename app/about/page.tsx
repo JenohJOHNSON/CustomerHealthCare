@@ -1,3 +1,4 @@
+import SiteFooter from "../components/SiteFooter";
 import SiteNav from "../components/SiteNav";
 import {
   getPageLang,
@@ -55,8 +56,6 @@ const text = {
     workflowTitle: "Workflow",
     technologyTitle: "Technology Used",
     databaseTitle: "Database Tables",
-    footer:
-      "Built with Airbyte Cloud, Neon PostgreSQL, GitHub Actions, Python, Next.js, Vercel, and OpenAI.",
     workflowSteps: [
       {
         title: "Collect the data",
@@ -141,8 +140,6 @@ const text = {
     workflowTitle: "Workflow",
     technologyTitle: "Technologies utilisées",
     databaseTitle: "Tables de base de données",
-    footer:
-      "Construit avec Airbyte Cloud, Neon PostgreSQL, GitHub Actions, Python, Next.js, Vercel et OpenAI.",
     workflowSteps: [
       {
         title: "Collecter les données",
@@ -284,9 +281,7 @@ export default async function AboutPage({ searchParams }: LangPageProps) {
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="container">{copy.footer}</div>
-      </footer>
+      <SiteFooter lang={lang} />
     </main>
   );
 }

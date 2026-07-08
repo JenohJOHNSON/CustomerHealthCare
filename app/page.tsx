@@ -1,6 +1,7 @@
 import AirbyteSyncButton from "./components/AirbyteSyncButton";
 import Chatbot from "./components/Chatbot";
 import ChurnDrivers from "./components/ChurnDrivers";
+import SiteFooter from "./components/SiteFooter";
 import SiteNav from "./components/SiteNav";
 import {
   getPageLang,
@@ -82,8 +83,6 @@ const text = {
       "Churn drivers will appear here after model training writes analytics.churn_drivers.",
     chatbotTitle: "Airbyte Data Chatbot",
     operationsTitle: "Airbyte Operations",
-    footer:
-      "Portfolio-grade prototype: public demo data, Airbyte ingestion, PostgreSQL analytics, Python ML, Vercel delivery, and OpenAI explanations.",
     headers: {
       customerId: "Customer ID",
       churnProbability: "Churn Probability",
@@ -178,8 +177,6 @@ const text = {
       "Les facteurs de churn apparaîtront ici après l'écriture de analytics.churn_drivers par le modèle.",
     chatbotTitle: "Chatbot de données Airbyte",
     operationsTitle: "Opérations Airbyte",
-    footer:
-      "Prototype portfolio : données publiques, ingestion Airbyte, analyses PostgreSQL, ML Python, livraison Vercel et explications OpenAI.",
     headers: {
       customerId: "ID client",
       churnProbability: "Probabilité de churn",
@@ -541,9 +538,7 @@ export default async function HomePage({ searchParams }: LangPageProps) {
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="container">{copy.footer}</div>
-      </footer>
+      <SiteFooter lang={lang} />
     </main>
   );
 }

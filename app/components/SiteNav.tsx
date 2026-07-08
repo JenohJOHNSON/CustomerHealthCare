@@ -1,4 +1,5 @@
 import { hrefWithLang, type Lang } from "@/lib/i18n";
+import SiteLogo from "./SiteLogo";
 
 const labels = {
   en: {
@@ -37,7 +38,7 @@ export default function SiteNav({
     <header className="site-header">
       <nav className="container site-nav" aria-label={text.navigation}>
         <a className="brand" href={hrefWithLang("/", lang)}>
-          {text.brand}
+          <SiteLogo label={text.brand} />
         </a>
         <div className="nav-actions">
           <div className="nav-links">
