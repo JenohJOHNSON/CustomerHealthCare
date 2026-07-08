@@ -1,17 +1,46 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { Lang } from "@/lib/i18n";
 
 type Message = {
   role: "user" | "assistant";
   text: string;
 };
 
-export default function Chatbot() {
+const text = {
+  en: {
+    greeting:
+      "Hi, I am the Airbyte Data Chatbot. Ask me about churn risk, KPIs, high-risk customers, or churn drivers.",
+    fallback: "Sorry, I could not answer that question yet.",
+    unreachable:
+      "I could not reach the chatbot API. Check that the app is running and environment variables are set.",
+    placeholder: "Example: What are the main churn drivers?",
+    ask: "Ask",
+    thinking: "Thinking...",
+    label: "Ask the Airbyte Data Chatbot",
+    aria: "Airbyte Data Chatbot",
+  },
+  fr: {
+    greeting:
+      "Bonjour, je suis le chatbot de donnees Airbyte. Posez une question sur le risque de churn, les KPI, les clients a risque ou les facteurs de churn.",
+    fallback: "Desole, je ne peux pas encore repondre a cette question.",
+    unreachable:
+      "Je ne peux pas joindre l'API du chatbot. Verifiez que l'application fonctionne et que les variables d'environnement sont configurees.",
+    placeholder: "Exemple : Quels sont les principaux facteurs de churn ?",
+    ask: "Demander",
+    thinking: "Analyse...",
+    label: "Poser une question au chatbot Airbyte",
+    aria: "Chatbot de donnees Airbyte",
+  },
+};
+
+export default function Chatbot({ lang = "en" }: { lang?: Lang }) {
+  const copy = text[lang];
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      text: "Hi, I am the Airbyte Data Chatbot. Ask me about churn risk, KPIs, high-risk customers, or churn drivers.",
+      text: copy.greeting,
     },
   ]);
   const [input, setInput] = useState("");
@@ -36,7 +65,7 @@ export default function Chatbot() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ lang, message: userMessage }),
       });
 
       const data = (await response.json()) as { answer?: string; error?: string };
@@ -48,7 +77,7 @@ export default function Chatbot() {
           text:
             data.answer ||
             data.error ||
-            "Sorry, I could not answer that question yet.",
+            copy.fallback,
         },
       ]);
     } catch {
@@ -56,7 +85,7 @@ export default function Chatbot() {
         ...previous,
         {
           role: "assistant",
-          text: "I could not reach the chatbot API. Check that the app is running and environment variables are set.",
+          text: copy.unreachable,
         },
       ]);
     } finally {
@@ -65,7 +94,7 @@ export default function Chatbot() {
   }
 
   return (
-    <section className="chatbot" aria-label="Airbyte Data Chatbot">
+    <section className="chatbot" aria-label={copy.aria}>
       <div className="messages" aria-live="polite">
         {messages.map((message, index) => (
           <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
@@ -76,14 +105,14 @@ export default function Chatbot() {
 
       <form className="chat-form" onSubmit={sendMessage}>
         <input
-          aria-label="Ask the Airbyte Data Chatbot"
+          aria-label={copy.label}
           className="chat-input"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Example: What are the main churn drivers?"
+          placeholder={copy.placeholder}
         />
         <button className="button" disabled={loading || !input.trim()} type="submit">
-          {loading ? "Thinking..." : "Ask"}
+          {loading ? copy.thinking : copy.ask}
         </button>
       </form>
     </section>
