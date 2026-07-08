@@ -1,5 +1,6 @@
 import AirbyteSyncButton from "./components/AirbyteSyncButton";
 import Chatbot from "./components/Chatbot";
+import ChurnDrivers from "./components/ChurnDrivers";
 import SiteNav from "./components/SiteNav";
 import {
   getPageLang,
@@ -298,16 +299,6 @@ function translatedRisk(riskLevel: string, lang: Lang) {
   return text[lang].risks[key] ?? riskLevel;
 }
 
-function driverStrength(driver: DriverRow, maxImportance: number) {
-  const importance = Math.abs(Number(driver.importance));
-
-  if (!maxImportance || !Number.isFinite(importance)) {
-    return "0%";
-  }
-
-  return `${Math.max(8, Math.round((importance / maxImportance) * 100))}%`;
-}
-
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown database error";
 }
@@ -499,24 +490,11 @@ export default async function HomePage({ searchParams }: LangPageProps) {
           <div>
             <h2>{copy.driversTitle}</h2>
             {data.drivers.length ? (
-              <div className="driver-list">
-                {data.drivers.map((driver) => (
-                  <article className="driver-row" key={driver.feature}>
-                    <div className="driver-meta">
-                      <span>{driver.feature}</span>
-                      <span>{Number(driver.importance).toFixed(4)}</span>
-                    </div>
-                    <div className="bar" aria-hidden="true">
-                      <div
-                        className="bar-fill"
-                        style={{
-                          width: driverStrength(driver, maxDriverImportance),
-                        }}
-                      />
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <ChurnDrivers
+                drivers={data.drivers}
+                lang={lang}
+                maxDriverImportance={maxDriverImportance}
+              />
             ) : (
               <div className="empty">{copy.emptyDrivers}</div>
             )}
