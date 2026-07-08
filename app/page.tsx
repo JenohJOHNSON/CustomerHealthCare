@@ -1,5 +1,6 @@
 import AirbyteSyncButton from "./components/AirbyteSyncButton";
 import Chatbot from "./components/Chatbot";
+import SiteNav from "./components/SiteNav";
 import { hasDatabaseUrl, query } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -157,6 +158,8 @@ export default async function HomePage() {
 
   return (
     <main className="page">
+      <SiteNav />
+
       <section className="hero">
         <div className="container hero-inner">
           <div>
@@ -170,6 +173,12 @@ export default async function HomePage() {
             <div className="actions">
               <a className="button" href="#dashboard">
                 View Dashboard
+              </a>
+              <a className="button-secondary" href="/customers">
+                All Customers
+              </a>
+              <a className="button-secondary" href="/about">
+                About Project
               </a>
               <a className="button-secondary" href="#chatbot">
                 Ask Chatbot
