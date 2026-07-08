@@ -473,6 +473,10 @@ tr:last-child td {
   white-space: pre-wrap;
 }
 
+.bubble strong {
+  font-weight: 850;
+}
+
 .assistant .bubble {
   background: var(--surface-soft);
 }

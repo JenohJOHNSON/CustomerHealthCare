@@ -10,11 +10,11 @@ const labels = {
     language: "Language",
   },
   fr: {
-    brand: "Sante Client",
+    brand: "Santé Client",
     navigation: "Navigation principale",
     dashboard: "Tableau de bord",
     customers: "Clients",
-    about: "A propos",
+    about: "À propos",
     language: "Langue",
   },
 };

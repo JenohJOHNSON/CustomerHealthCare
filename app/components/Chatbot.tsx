@@ -23,17 +23,29 @@ const text = {
   },
   fr: {
     greeting:
-      "Bonjour, je suis le chatbot de donnees Airbyte. Posez une question sur le risque de churn, les KPI, les clients a risque ou les facteurs de churn.",
-    fallback: "Desole, je ne peux pas encore repondre a cette question.",
+      "Bonjour, je suis le chatbot de données Airbyte. Posez une question sur le risque de churn, les KPI, les clients à risque ou les facteurs de churn.",
+    fallback: "Désolé, je ne peux pas encore répondre à cette question.",
     unreachable:
-      "Je ne peux pas joindre l'API du chatbot. Verifiez que l'application fonctionne et que les variables d'environnement sont configurees.",
+      "Je ne peux pas joindre l'API du chatbot. Vérifiez que l'application fonctionne et que les variables d'environnement sont configurées.",
     placeholder: "Exemple : Quels sont les principaux facteurs de churn ?",
     ask: "Demander",
     thinking: "Analyse...",
     label: "Poser une question au chatbot Airbyte",
-    aria: "Chatbot de donnees Airbyte",
+    aria: "Chatbot de données Airbyte",
   },
 };
+
+function renderFormattedText(message: string) {
+  return message.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    const boldMatch = part.match(/^\*\*(.+)\*\*$/);
+
+    if (boldMatch) {
+      return <strong key={`${part}-${index}`}>{boldMatch[1]}</strong>;
+    }
+
+    return part;
+  });
+}
 
 export default function Chatbot({ lang = "en" }: { lang?: Lang }) {
   const copy = text[lang];
@@ -98,7 +110,7 @@ export default function Chatbot({ lang = "en" }: { lang?: Lang }) {
       <div className="messages" aria-live="polite">
         {messages.map((message, index) => (
           <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
-            <span className="bubble">{message.text}</span>
+            <span className="bubble">{renderFormattedText(message.text)}</span>
           </div>
         ))}
       </div>

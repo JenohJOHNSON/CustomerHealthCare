@@ -15,13 +15,13 @@ const text = {
   },
   fr: {
     idle: "Optionnel : lancer une nouvelle synchronisation Airbyte.",
-    starting: "Demarrage de la synchronisation Airbyte...",
+    starting: "Démarrage de la synchronisation Airbyte...",
     fallback:
-      "La synchronisation Airbyte n'a pas pu demarrer. Verifiez le jeton API et l'ID de connexion.",
-    success: "Synchronisation Airbyte demarree.",
+      "La synchronisation Airbyte n'a pas pu démarrer. Vérifiez le jeton API et l'ID de connexion.",
+    success: "Synchronisation Airbyte démarrée.",
     unreachable: "La route de synchronisation est inaccessible.",
     button: "Lancer la sync Airbyte",
-    loading: "Demarrage...",
+    loading: "Démarrage...",
   },
 };
 
