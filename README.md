@@ -197,6 +197,7 @@ About (/about)
 │   │   ├── SiteNav.tsx                # Shared navigation + language switcher
 │   │   ├── SiteLogo.tsx               # Reusable Customer Health logo mark
 │   │   ├── SiteFooter.tsx             # Shared footer with portfolio profile links
+│   │   ├── KpiCards.tsx               # Clickable Executive KPI explanation popups
 │   │   ├── Chatbot.tsx                # Chat UI with basic bold markdown rendering
 │   │   ├── ChurnDrivers.tsx           # Interactive churn-driver bar chart + popups
 │   │   └── AirbyteSyncButton.tsx      # Sync trigger UI

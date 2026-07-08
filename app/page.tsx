@@ -1,6 +1,7 @@
 import AirbyteSyncButton from "./components/AirbyteSyncButton";
 import Chatbot from "./components/Chatbot";
 import ChurnDrivers from "./components/ChurnDrivers";
+import KpiCards from "./components/KpiCards";
 import SiteFooter from "./components/SiteFooter";
 import SiteNav from "./components/SiteNav";
 import {
@@ -232,45 +233,6 @@ const text = {
   },
 };
 
-function formatMetricName(metric: string, lang: Lang) {
-  const key = metric as keyof (typeof text)["en"]["metrics"];
-  return text[lang].metrics[key] ?? metric.replaceAll("_", " ");
-}
-
-function formatMetricValue(metric: string, value: string | number, lang: Lang) {
-  const numericValue = Number(value);
-  const locale = localeFor(lang);
-
-  if (!Number.isFinite(numericValue)) {
-    return String(value);
-  }
-
-  if (metric.includes("percent")) {
-    return `${numericValue.toLocaleString(locale, {
-      maximumFractionDigits: 2,
-    })}%`;
-  }
-
-  if (metric.includes("revenue")) {
-    return numericValue.toLocaleString(locale, {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    });
-  }
-
-  if (metric.startsWith("model_")) {
-    return numericValue.toLocaleString(locale, {
-      maximumFractionDigits: 3,
-      minimumFractionDigits: 3,
-    });
-  }
-
-  return numericValue.toLocaleString(locale, {
-    maximumFractionDigits: 2,
-  });
-}
-
 function percent(value: string | number, lang: Lang) {
   const numericValue = Number(value);
 
@@ -428,16 +390,7 @@ export default async function HomePage({ searchParams }: LangPageProps) {
 
           <h2>{copy.kpisTitle}</h2>
           {data.kpis.length ? (
-            <div className="kpi-grid">
-              {data.kpis.map((kpi) => (
-                <article className="kpi-card" key={kpi.metric}>
-                  <p className="kpi-label">{formatMetricName(kpi.metric, lang)}</p>
-                  <p className="kpi-value">
-                    {formatMetricValue(kpi.metric, kpi.value, lang)}
-                  </p>
-                </article>
-              ))}
-            </div>
+            <KpiCards kpis={data.kpis} lang={lang} />
           ) : (
             <div className="empty">{copy.emptyKpis}</div>
           )}

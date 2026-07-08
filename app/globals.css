@@ -342,6 +342,21 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.kpi-button {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  appearance: none;
+}
+
+.kpi-button:hover,
+.kpi-button:focus-visible {
+  border-color: rgba(15, 118, 110, 0.42);
+  outline: 0;
+  background: #fbfdfb;
+  transform: translateY(-1px);
+}
+
 .kpi-label {
   margin-bottom: 14px;
   color: var(--muted);
@@ -586,7 +601,8 @@ tr:last-child td {
   background: rgba(23, 33, 27, 0.42);
 }
 
-.driver-modal {
+.driver-modal,
+.kpi-modal {
   width: min(620px, 100%);
   max-height: min(720px, calc(100vh - 40px));
   overflow-y: auto;
@@ -595,6 +611,29 @@ tr:last-child td {
   padding: 18px;
   background: var(--surface);
   box-shadow: 0 24px 70px rgba(23, 33, 27, 0.24);
+}
+
+.modal-kpi-value {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--surface-soft);
+}
+
+.modal-kpi-value span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.modal-kpi-value strong {
+  color: var(--ink);
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .modal-heading {
