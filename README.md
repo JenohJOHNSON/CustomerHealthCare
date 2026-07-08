@@ -28,6 +28,49 @@ Public Telco CSV
   -> OpenAI-powered chatbot
 ```
 
+### Architecture Layers
+
+```text
+Data Source Layer
+  Public IBM Telco Customer Churn CSV
+
+Ingestion Layer
+  Airbyte Cloud File Source
+  Airbyte Cloud PostgreSQL Destination
+
+Storage Layer
+  Neon PostgreSQL
+  raw, staging, analytics schemas
+
+Transformation + ML Layer
+  GitHub Actions
+  Python
+  pandas
+  scikit-learn LogisticRegression
+
+Application Layer
+  Next.js App Router
+  Server-rendered dashboard pages
+  API routes for chatbot and Airbyte sync trigger
+
+Presentation Layer
+  Vercel deployment
+  Dashboard, Customers, About pages
+  English/French UI
+```
+
+### Data Flow
+
+1. Airbyte reads the public CSV from HTTPS.
+2. Airbyte writes the raw rows into `raw.customer_churn` in Neon.
+3. GitHub Actions runs `scripts/transform_train.py`.
+4. Python cleans the raw table and prepares model features.
+5. scikit-learn trains a logistic regression churn model.
+6. The pipeline writes predictions, KPIs, and drivers into `analytics`.
+7. Vercel reads analytics tables through the read-only `dashboard_reader` user.
+8. The dashboard renders KPIs, customer tables, churn drivers, and explanations.
+9. The chatbot uses a small analytics context and OpenAI to answer questions.
+
 ## Tools
 
 - Airbyte Cloud for data ingestion.
@@ -60,6 +103,8 @@ customerID
 ```
 
 ## App Pages
+
+The app uses the Next.js App Router under the `app/` directory.
 
 ### `/`
 
@@ -95,6 +140,160 @@ Project explanation page with:
 - Workflow and technology stack.
 - GitHub project link.
 - Data source link.
+
+## Site Layout
+
+The application has a shared top navigation component:
+
+```text
+Customer Health | Dashboard | Customers | About | EN / FR
+```
+
+Layout structure:
+
+```text
+SiteNav
+  -> language switcher
+  -> dashboard/customer/about navigation
+
+Home Dashboard (/)
+  -> Hero section
+  -> Executive KPI cards
+  -> Top High-Risk Customers table
+  -> Top Churn Drivers list
+  -> Churn Driver explanation modal
+  -> Dashboard Column Guide
+  -> Airbyte Data Chatbot
+  -> Airbyte Operations
+
+Customer Analysis (/customers)
+  -> Summary KPI cards
+  -> Segment analysis tables
+  -> All Customers table
+
+About (/about)
+  -> Project purpose
+  -> How to read results
+  -> Risk calculation
+  -> ML model explanation
+  -> Airbyte explanation
+  -> Workflow
+  -> Technology stack
+  -> Database tables
+```
+
+## Repository Layout
+
+```text
+.
+├── app/
+│   ├── page.tsx                       # Main dashboard
+│   ├── customers/page.tsx             # All Customer Analysis page
+│   ├── about/page.tsx                 # Project explanation page
+│   ├── api/
+│   │   ├── chat/route.ts              # OpenAI chatbot API
+│   │   └── airbyte-sync/route.ts      # Optional Airbyte sync trigger
+│   ├── components/
+│   │   ├── SiteNav.tsx                # Shared navigation + language switcher
+│   │   ├── Chatbot.tsx                # Chat UI with basic bold markdown rendering
+│   │   ├── ChurnDrivers.tsx           # Clickable churn-driver explanation popups
+│   │   └── AirbyteSyncButton.tsx      # Sync trigger UI
+│   ├── globals.css                    # Shared styling
+│   └── layout.tsx                     # Root app layout
+├── lib/
+│   ├── db.ts                          # PostgreSQL connection helper
+│   └── i18n.ts                        # English/French language helpers
+├── scripts/
+│   └── transform_train.py             # Data cleaning + ML training pipeline
+├── sql/
+│   ├── 01_create_schemas.sql          # Schema setup
+│   ├── 02_data_quality_checks.sql     # Quality checks
+│   ├── 03_useful_kpi_queries.sql      # Analysis queries
+│   └── 04_create_dashboard_reader.sql # Read-only Vercel user
+├── docs/
+│   ├── architecture.md
+│   ├── airbyte_setup.md
+│   ├── cloud_deployment_guide.md
+│   ├── data_model.md
+│   └── interview_pitch.md
+├── .github/workflows/
+│   └── transform-train.yml            # GitHub Actions pipeline
+├── Project Detail.txt
+├── README.md
+└── package.json
+```
+
+## API Routes
+
+### `POST /api/chat`
+
+Purpose:
+
+- Receives a user question from the chatbot.
+- Reads KPIs, top churn drivers, and sample high-risk customers from Neon.
+- Sends that context to OpenAI.
+- Returns a business-friendly answer.
+
+Important environment variables:
+
+- `DATABASE_URL`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+
+### `POST /api/airbyte-sync`
+
+Purpose:
+
+- Optional endpoint used by the dashboard button.
+- Starts an Airbyte sync job for the configured connection.
+
+Important environment variables:
+
+- `AIRBYTE_API_TOKEN`
+- `AIRBYTE_CONNECTION_ID`
+- `AIRBYTE_API_BASE_URL`
+
+## Data Architecture
+
+### Schemas
+
+```text
+raw       -> Airbyte-loaded source data
+staging   -> reserved for intermediate transformations
+analytics -> dashboard-ready data, predictions, KPIs, and pipeline history
+```
+
+### Main Tables
+
+```text
+raw.customer_churn
+  Original Telco CSV records loaded by Airbyte.
+
+analytics.customer_health
+  Cleaned customer records with normalized fields and helper features.
+
+analytics.churn_predictions
+  Customer-level churn probability and risk level.
+
+analytics.kpi_summary
+  Metric/value rows for dashboard cards.
+
+analytics.churn_drivers
+  Logistic regression coefficients used for model explanation.
+
+analytics.pipeline_runs
+  Pipeline execution history.
+```
+
+## Frontend Design Notes
+
+- The dashboard is intentionally simple and portfolio-friendly.
+- The UI uses cards for repeated KPI and driver elements.
+- Tables are horizontally scrollable so they work on smaller screens.
+- The customer table is ordered by highest predicted churn probability.
+- Churn-driver popups explain model features in plain language.
+- The `?lang=fr` version includes accented French UI copy.
+- Chatbot messages render simple `**bold**` markdown as bold text.
 
 ## How Customer Risk Is Calculated
 
