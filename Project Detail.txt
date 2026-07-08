@@ -1,0 +1,292 @@
+Customer Health Intelligence Pipeline - Project Detail
+
+1. Project Summary
+
+Customer Health Intelligence Pipeline is a full cloud data project that predicts customer churn risk and explains customer health KPIs.
+
+Business question:
+Which customers are likely to churn, and why?
+
+The project uses a public Telco Customer Churn CSV, loads it into Neon PostgreSQL with Airbyte Cloud, runs a Python machine learning pipeline with GitHub Actions, and publishes a Next.js dashboard on Vercel.
+
+Final app features:
+- Executive KPI dashboard.
+- All Customer Analysis page.
+- About page explaining the project and workflow.
+- English/French language switcher.
+- Top churn driver explanation popups.
+- OpenAI-powered data chatbot.
+- Optional Airbyte sync button.
+
+2. Final Cloud Architecture
+
+Public Telco Customer Churn CSV
+  -> Airbyte Cloud File Source
+  -> Airbyte Cloud Connection
+  -> Neon PostgreSQL raw.customer_churn
+  -> GitHub Actions Python pipeline
+  -> analytics tables and ML predictions
+  -> Vercel Next.js dashboard
+  -> OpenAI data chatbot
+
+3. Main Tools
+
+Airbyte Cloud:
+Moves the public CSV into Neon PostgreSQL.
+
+Neon PostgreSQL:
+Stores raw data, cleaned data, model predictions, KPIs, churn drivers, and pipeline history.
+
+GitHub Actions:
+Runs the Python transformation and model training pipeline in the cloud.
+
+Python:
+Cleans the raw data and trains the churn prediction model.
+
+pandas:
+Reads, cleans, and writes tabular data.
+
+scikit-learn:
+Builds the machine learning model.
+
+Next.js:
+Powers the web dashboard and API routes.
+
+Vercel:
+Hosts the live application.
+
+OpenAI API:
+Powers the chatbot that answers questions using analytics context.
+
+4. Dataset
+
+Dataset:
+IBM Telco Customer Churn
+
+Source URL:
+https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv
+
+Important columns:
+- customerID
+- gender
+- SeniorCitizen
+- Partner
+- Dependents
+- tenure
+- PhoneService
+- MultipleLines
+- InternetService
+- OnlineSecurity
+- OnlineBackup
+- DeviceProtection
+- TechSupport
+- StreamingTV
+- StreamingMovies
+- Contract
+- PaperlessBilling
+- PaymentMethod
+- MonthlyCharges
+- TotalCharges
+- Churn
+
+Recommended primary key in Airbyte:
+customerID
+
+Recommended raw destination table:
+raw.customer_churn
+
+5. Database Design
+
+Schemas:
+- raw: source data loaded by Airbyte.
+- staging: reserved for intermediate transformations.
+- analytics: final dashboard-ready tables.
+
+Important tables:
+
+raw.customer_churn:
+Original CSV records loaded by Airbyte.
+
+analytics.customer_health:
+Cleaned customer records with normalized column names, numeric values, churn flag, and helper features.
+
+analytics.churn_predictions:
+One row per customer with predicted churn probability and risk level.
+
+analytics.kpi_summary:
+Metric/value table used for dashboard KPI cards.
+
+analytics.churn_drivers:
+Top logistic regression coefficients used to explain the model.
+
+analytics.pipeline_runs:
+History table showing pipeline execution status.
+
+6. Data Pipeline
+
+Step 1:
+Airbyte Cloud reads the public CSV from HTTPS.
+
+Step 2:
+Airbyte writes the records into Neon PostgreSQL as raw.customer_churn.
+
+Step 3:
+GitHub Actions runs scripts/transform_train.py.
+
+Step 4:
+The Python script reads the raw table, cleans data, trains the model, and writes analytics tables.
+
+Step 5:
+Vercel reads analytics tables through a read-only database user.
+
+Step 6:
+The chatbot uses OpenAI and a small analytics context to answer business questions.
+
+7. How Customer Risk Is Calculated
+
+The Python pipeline cleans and prepares customer data.
+
+Preparation steps:
+- Normalize column names.
+- Convert tenure, MonthlyCharges, and TotalCharges to numbers.
+- Fill missing numeric values.
+- Clean text columns.
+- Convert Churn into churn_flag where Yes = 1 and No = 0.
+- Create is_month_to_month.
+- Create revenue_at_risk.
+- One-hot encode categorical fields such as Contract and InternetService.
+- Scale numeric fields.
+
+Machine learning function:
+scikit-learn LogisticRegression
+
+Why logistic regression is used:
+- Churn prediction is a binary classification task.
+- The target is Yes or No churn.
+- Logistic regression is fast.
+- It produces probabilities.
+- It is easier to explain than many complex models.
+- Its coefficients can be used as churn drivers.
+
+Risk labels:
+- Low risk: below 40% churn probability.
+- Medium risk: 40% to below 70% churn probability.
+- High risk: 70% or higher churn probability.
+
+Important note:
+Model drivers explain associations learned from the data. They do not prove direct cause and effect.
+
+8. Dashboard Pages
+
+Home Dashboard:
+- Shows executive KPIs.
+- Shows top high-risk customers.
+- Shows top churn drivers.
+- Includes clickable churn driver explanation popups.
+- Includes dashboard column guide.
+- Includes chatbot.
+- Includes Airbyte sync button.
+
+All Customer Analysis:
+- Shows total customers, high-risk customers, average churn risk, and revenue at risk.
+- Shows risk breakdown by risk level.
+- Shows risk by contract type.
+- Shows risk by internet service.
+- Shows all customers ordered by churn probability.
+
+About:
+- Explains the function of the site.
+- Explains the workflow.
+- Explains how Airbyte is used.
+- Explains how risk is calculated.
+- Explains the ML model and why it was chosen.
+- Links to GitHub.
+- Links to the source dataset.
+
+9. Language Support
+
+The site supports English and French.
+
+Language URLs:
+- English: ?lang=en
+- French: ?lang=fr
+
+Examples:
+- /?lang=en
+- /?lang=fr
+- /customers?lang=fr
+- /about?lang=fr
+
+10. Churn Driver Popups
+
+Each top churn driver row can be clicked.
+
+The popup explains:
+- Readable driver name.
+- Original model feature name.
+- Whether the driver increases or lowers predicted churn risk.
+- Why the field matters.
+- The logistic regression coefficient.
+- That the result is model association, not guaranteed causation.
+
+11. Environment Variables
+
+GitHub Actions:
+DATABASE_URL = Neon owner/admin direct connection string
+RAW_SCHEMA = raw
+RAW_TABLE = customer_churn
+
+Vercel:
+DATABASE_URL = dashboard_reader Neon pooled connection string
+OPENAI_API_KEY = OpenAI API key
+OPENAI_MODEL = gpt-4.1-mini
+AIRBYTE_API_TOKEN = Airbyte API token
+AIRBYTE_CONNECTION_ID = Airbyte connection ID
+AIRBYTE_API_BASE_URL = https://api.airbyte.com/v1
+
+12. Security Notes
+
+Use the Neon owner/admin database URL only for setup, Airbyte, and GitHub Actions.
+
+Use the dashboard_reader database URL for Vercel.
+
+Do not commit:
+- DATABASE_URL
+- OPENAI_API_KEY
+- AIRBYTE_API_TOKEN
+- Neon passwords
+- .env.local
+
+13. How To Run Checks
+
+Frontend:
+npm run typecheck
+npm run build
+
+Database:
+SELECT COUNT(*) FROM raw.customer_churn;
+SELECT * FROM analytics.kpi_summary;
+SELECT COUNT(*) FROM analytics.churn_predictions;
+SELECT * FROM analytics.pipeline_runs ORDER BY run_time DESC;
+
+14. Repository
+
+GitHub:
+https://github.com/JenohJOHNSON/CustomerHealthCare
+
+15. Current Production Target
+
+Airbyte Cloud:
+Loads public CSV into Neon.
+
+Neon:
+Stores raw and analytics tables.
+
+GitHub Actions:
+Runs transformation and model training.
+
+Vercel:
+Hosts the dashboard.
+
+OpenAI:
+Powers chatbot explanations when API quota is available.

@@ -2,13 +2,19 @@
 
 This project predicts customer churn risk and explains customer health KPIs using a cloud-hosted data pipeline.
 
-## Project Goal
-
-Build a portfolio-grade data project that answers:
+It is built as a portfolio-grade data project that answers:
 
 > Which customers are likely to churn, and why?
 
-The final dashboard shows total customers, churn rate, high-risk customers, revenue at risk, top churn drivers, and an Airbyte Data Chatbot.
+## Live Product Features
+
+- Executive KPI dashboard for total customers, churn rate, high-risk customers, revenue at risk, and model metrics.
+- All Customer Analysis page with every customer ordered by predicted churn risk.
+- About page explaining the project goal, workflow, Airbyte usage, data source, ML approach, and technology stack.
+- English/French language switcher using `?lang=en` and `?lang=fr`.
+- Top Churn Drivers section with clickable explanation popups for each driver.
+- OpenAI-powered chatbot that answers questions using dashboard analytics context.
+- Optional Airbyte sync trigger button.
 
 ## Architecture
 
@@ -24,22 +30,106 @@ Public Telco CSV
 
 ## Tools
 
-- Airbyte Cloud
-- Neon PostgreSQL
-- Python, pandas, scikit-learn
-- SQL
-- GitHub Actions
-- Next.js
-- Vercel
-- OpenAI API
+- Airbyte Cloud for data ingestion.
+- Neon PostgreSQL for cloud database storage.
+- Python, pandas, and scikit-learn for cleaning, feature preparation, and churn modeling.
+- SQL for schema setup, checks, and analytics queries.
+- GitHub Actions for cloud pipeline execution.
+- Next.js and React for the web app.
+- Vercel for deployment.
+- OpenAI API for the data chatbot.
 
 ## Dataset
 
-Use the public Telco Customer Churn CSV:
+The project uses the public IBM Telco Customer Churn CSV:
 
 ```text
 https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv
 ```
+
+Recommended Airbyte destination table:
+
+```text
+raw.customer_churn
+```
+
+Primary key:
+
+```text
+customerID
+```
+
+## App Pages
+
+### `/`
+
+Main dashboard with:
+
+- KPI cards.
+- Top high-risk customers.
+- Top churn drivers.
+- Churn driver explanation popups.
+- Dashboard column guide.
+- Data chatbot.
+- Airbyte sync trigger.
+
+### `/customers`
+
+Customer analysis page with:
+
+- Customer summary cards.
+- Risk level breakdown.
+- Risk by contract.
+- Risk by internet service.
+- Full customer table ordered by churn probability.
+
+### `/about`
+
+Project explanation page with:
+
+- What the site does.
+- How to read the results.
+- How customer risk is calculated.
+- Which ML function is used and why.
+- How Airbyte is used.
+- Workflow and technology stack.
+- GitHub project link.
+- Data source link.
+
+## How Customer Risk Is Calculated
+
+The Python pipeline reads `raw.customer_churn`, cleans the data, and prepares features for machine learning.
+
+Key preparation steps:
+
+- Normalize column names.
+- Convert `tenure`, `MonthlyCharges`, and `TotalCharges` into numeric values.
+- Fill missing numeric values.
+- Convert text categories such as `Contract`, `InternetService`, and `PaymentMethod` into model-ready columns with one-hot encoding.
+- Create helper features such as `is_month_to_month` and `revenue_at_risk`.
+
+The model uses scikit-learn `LogisticRegression` inside a pipeline. Logistic regression is used because churn is a binary classification problem: the customer either churns or does not churn. It is a good first model because it is fast, interpretable, and produces churn probabilities.
+
+Risk levels are assigned from the predicted churn probability:
+
+```text
+Low:    0% to less than 40%
+Medium: 40% to less than 70%
+High:   70% to 100%
+```
+
+## Churn Driver Popups
+
+The model writes its strongest coefficients into `analytics.churn_drivers`.
+
+The dashboard shows those drivers as clickable rows. Each popup explains:
+
+- Clean readable driver name.
+- Original model feature name.
+- Whether the driver increases or lowers predicted churn risk.
+- Why the driver matters.
+- Logistic regression coefficient.
+- A reminder that model drivers show association, not guaranteed cause and effect.
 
 ## Local Setup
 
@@ -67,7 +157,7 @@ The app can start without `DATABASE_URL`; it will show setup guidance until the 
 
 Use the Neon owner/admin connection string for setup and pipeline writes.
 
-Create the schemas:
+Create schemas:
 
 ```bash
 psql "$DATABASE_URL" -f sql/01_create_schemas.sql
@@ -79,13 +169,7 @@ Create a read-only dashboard user for Vercel:
 psql "$DATABASE_URL" -f sql/04_create_dashboard_reader.sql
 ```
 
-Configure Airbyte Cloud to load the Telco CSV into:
-
-```text
-raw.customer_churn
-```
-
-If Airbyte uses another table name, set:
+If Airbyte uses another raw table name, set:
 
 ```bash
 RAW_SCHEMA=raw
@@ -123,6 +207,13 @@ Add this repository secret:
 DATABASE_URL=postgresql://neondb_owner:PASSWORD@NEON_DIRECT_HOST/CustomerHealth?sslmode=require&channel_binding=require
 ```
 
+Add these repository variables:
+
+```text
+RAW_SCHEMA=raw
+RAW_TABLE=customer_churn
+```
+
 Then run the `Transform and Train` workflow manually or let it run on the daily schedule.
 
 ## Vercel Environment Variables
@@ -138,6 +229,8 @@ AIRBYTE_CONNECTION_ID=your_airbyte_connection_id
 AIRBYTE_API_BASE_URL=https://api.airbyte.com/v1
 ```
 
+`OPENAI_API_KEY` is required only for the chatbot. The dashboard and customer analysis pages can work without OpenAI if the database is configured.
+
 ## Useful Checks
 
 ```bash
@@ -145,6 +238,28 @@ psql "$DATABASE_URL" -f sql/02_data_quality_checks.sql
 psql "$DATABASE_URL" -f sql/03_useful_kpi_queries.sql
 ```
 
+Manual database checks:
+
+```sql
+SELECT COUNT(*) FROM raw.customer_churn;
+SELECT * FROM analytics.kpi_summary;
+SELECT COUNT(*) FROM analytics.churn_predictions;
+SELECT * FROM analytics.pipeline_runs ORDER BY run_time DESC;
+```
+
+## Development Checks
+
+```bash
+npm run typecheck
+npm run build
+```
+
+## Repository
+
+```text
+https://github.com/JenohJOHNSON/CustomerHealthCare
+```
+
 ## Limitations
 
-This is a portfolio prototype using public demo data. A production system would need stronger security, private networking, orchestration, monitoring, and model drift checks.
+This is a portfolio prototype using public demo data. A production version would need stronger security, private networking, model monitoring, data drift checks, stronger observability, and a more robust Airbyte API authentication flow.
