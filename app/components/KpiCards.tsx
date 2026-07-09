@@ -8,10 +8,37 @@ type KpiRow = {
   value: string | number;
 };
 
+type ModelEvaluationRow = {
+  metric: string;
+  value: string | number;
+};
+
 type MetricDetail = {
   calculation: string;
   label: string;
   meaning: string;
+};
+
+type EvaluationSummary = {
+  baselineAccuracy: number;
+  falseNegative: number;
+  falsePositive: number;
+  testActualChurn: number;
+  testActualNoChurn: number;
+  testRows: number;
+  trueNegative: number;
+  truePositive: number;
+};
+
+const latestCheckedEvaluation: EvaluationSummary = {
+  baselineAccuracy: 0.7348,
+  falseNegative: 217,
+  falsePositive: 146,
+  testActualChurn: 467,
+  testActualNoChurn: 1294,
+  testRows: 1761,
+  trueNegative: 1148,
+  truePositive: 250,
 };
 
 const text = {
@@ -24,8 +51,25 @@ const text = {
     numberMeaning: "What this number tells us",
     close: "Close",
     open: "Explain KPI",
+    basisTitle: "Basis for this model score",
+    testSet: "Test set used",
+    formula: "Formula with this run's numbers",
+    confusionMatrix: "Confusion matrix",
+    baseline: "Baseline comparison",
+    basisFallback:
+      "This model score is calculated on the 25% holdout test set. Rerun the Python pipeline to populate the exact confusion-matrix counts in analytics.model_evaluation.",
     noNumber:
       "This value is not numeric, so the dashboard can show it but cannot calculate a numeric interpretation.",
+    basisIntro: (testRows: string, noChurn: string, churn: string) =>
+      `These scores are based on the 25% holdout test set, not the training rows. This run tested ${testRows} customers: ${noChurn} actual no-churn customers and ${churn} actual churn customers.`,
+    baselineText: (baseline: string, score: string) =>
+      `If we always predicted "No churn", the baseline accuracy would be ${baseline}. This model's accuracy is ${score}, so it performs better than that simple baseline.`,
+    confusion: {
+      trueNegative: "Correct no-churn predictions",
+      falsePositive: "Wrong churn warnings",
+      falseNegative: "Missed churn customers",
+      truePositive: "Correct churn predictions",
+    },
     fallback: {
       meaning: "A dashboard metric written by the analytics pipeline.",
       calculation:
@@ -107,8 +151,25 @@ const text = {
     numberMeaning: "Ce que ce nombre nous dit",
     close: "Fermer",
     open: "Expliquer le KPI",
+    basisTitle: "Base de ce score modèle",
+    testSet: "Jeu de test utilisé",
+    formula: "Formule avec les nombres de cette exécution",
+    confusionMatrix: "Matrice de confusion",
+    baseline: "Comparaison au baseline",
+    basisFallback:
+      "Ce score modèle est calculé sur le jeu de test de 25%. Relancez le pipeline Python pour remplir les nombres exacts de matrice de confusion dans analytics.model_evaluation.",
     noNumber:
       "Cette valeur n'est pas numérique, donc le tableau peut l'afficher mais ne peut pas produire une interprétation chiffrée.",
+    basisIntro: (testRows: string, noChurn: string, churn: string) =>
+      `Ces scores sont basés sur le jeu de test de 25%, pas sur les lignes d'entraînement. Cette exécution a testé ${testRows} clients : ${noChurn} vrais clients non-churn et ${churn} vrais clients churn.`,
+    baselineText: (baseline: string, score: string) =>
+      `Si on prédisait toujours « No churn », l'exactitude baseline serait ${baseline}. L'exactitude de ce modèle est ${score}, donc il fait mieux que ce baseline simple.`,
+    confusion: {
+      trueNegative: "Prédictions non-churn correctes",
+      falsePositive: "Alertes churn incorrectes",
+      falseNegative: "Clients churn manqués",
+      truePositive: "Prédictions churn correctes",
+    },
     fallback: {
       meaning: "Une métrique du tableau écrite par le pipeline analytics.",
       calculation:
@@ -225,7 +286,7 @@ function formatMetricValue(metric: string, value: string | number, lang: Lang) {
     const score = numeric <= 1 ? numeric * 100 : numeric;
 
     return `${score.toLocaleString(locale, {
-      maximumFractionDigits: 1,
+      maximumFractionDigits: 2,
     })}%`;
   }
 
@@ -258,8 +319,124 @@ function modelPercent(value: number, lang: Lang) {
   const score = value <= 1 ? value * 100 : value;
 
   return `${score.toLocaleString(localeFor(lang), {
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 2,
   })}%`;
+}
+
+function wholeNumber(value: number, lang: Lang) {
+  return value.toLocaleString(localeFor(lang), {
+    maximumFractionDigits: 0,
+  });
+}
+
+function buildEvaluationSummary(rows: ModelEvaluationRow[]): EvaluationSummary | null {
+  const values = rows.reduce<Record<string, number>>((accumulator, row) => {
+    const value = Number(row.value);
+
+    if (Number.isFinite(value)) {
+      accumulator[row.metric] = value;
+    }
+
+    return accumulator;
+  }, {});
+  const requiredMetrics = [
+    "test_rows",
+    "test_actual_no_churn",
+    "test_actual_churn",
+    "true_negative",
+    "false_positive",
+    "false_negative",
+    "true_positive",
+    "baseline_accuracy",
+  ];
+
+  if (requiredMetrics.some((metric) => values[metric] === undefined)) {
+    return null;
+  }
+
+  return {
+    baselineAccuracy: values.baseline_accuracy,
+    falseNegative: values.false_negative,
+    falsePositive: values.false_positive,
+    testActualChurn: values.test_actual_churn,
+    testActualNoChurn: values.test_actual_no_churn,
+    testRows: values.test_rows,
+    trueNegative: values.true_negative,
+    truePositive: values.true_positive,
+  };
+}
+
+function isCloseTo(value: string | number | undefined, expected: number) {
+  const numeric = Number(value);
+
+  return Number.isFinite(numeric) && Math.abs(numeric - expected) < 0.0002;
+}
+
+function matchesLatestCheckedRun(kpiValues: Record<string, string | number>) {
+  return (
+    isCloseTo(kpiValues.model_accuracy, 0.7939) &&
+    isCloseTo(kpiValues.model_precision, 0.6313) &&
+    isCloseTo(kpiValues.model_recall, 0.5353) &&
+    isCloseTo(kpiValues.model_f1, 0.5794)
+  );
+}
+
+function modelFormula({
+  evaluation,
+  kpiValues,
+  lang,
+  metric,
+  value,
+}: {
+  evaluation: EvaluationSummary;
+  kpiValues: Record<string, string | number>;
+  lang: Lang;
+  metric: string;
+  value: string | number;
+}) {
+  const numeric = numericValue(value) ?? 0;
+  const result = modelPercent(numeric, lang);
+  const testRows = wholeNumber(evaluation.testRows, lang);
+  const trueNegative = wholeNumber(evaluation.trueNegative, lang);
+  const falsePositive = wholeNumber(evaluation.falsePositive, lang);
+  const falseNegative = wholeNumber(evaluation.falseNegative, lang);
+  const truePositive = wholeNumber(evaluation.truePositive, lang);
+  const precision = numericValue(kpiValues.model_precision ?? 0) ?? 0;
+  const recall = numericValue(kpiValues.model_recall ?? 0) ?? 0;
+  const precisionPercent = modelPercent(precision, lang);
+  const recallPercent = modelPercent(recall, lang);
+
+  if (lang === "fr") {
+    switch (metric) {
+      case "model_accuracy":
+        return `Exactitude = (vrais négatifs + vrais positifs) / lignes de test = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
+      case "model_precision":
+        return `Précision = vrais positifs / (vrais positifs + faux positifs) = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
+      case "model_recall":
+        return `Rappel = vrais positifs / (vrais positifs + faux négatifs) = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
+      case "model_f1":
+        return `F1 = 2 x (précision x rappel) / (précision + rappel) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
+      case "model_roc_auc":
+        return `ROC AUC utilise les probabilités de churn prédites sur le même jeu de test. 50% correspond au hasard, 100% à un classement parfait. Cette exécution obtient ${result}.`;
+      default:
+        return `Ce score est calculé sur le jeu de test de ${testRows} lignes.`;
+    }
+  }
+
+  switch (metric) {
+    case "model_accuracy":
+      return `Accuracy = (true negatives + true positives) / test rows = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
+    case "model_precision":
+      return `Precision = true positives / (true positives + false positives) = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
+    case "model_recall":
+      return `Recall = true positives / (true positives + false negatives) = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
+    case "model_f1":
+      return `F1 = 2 x (precision x recall) / (precision + recall) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
+    case "model_roc_auc":
+      return `ROC AUC uses predicted churn probabilities on the same test set. 50% is random ranking, 100% is perfect ranking. This run scored ${result}.`;
+    default:
+      return `This score is calculated on the ${testRows}-row test set.`;
+  }
 }
 
 function explainValue(metric: string, value: string | number, formatted: string, lang: Lang) {
@@ -326,9 +503,11 @@ function explainValue(metric: string, value: string | number, formatted: string,
 export default function KpiCards({
   kpis,
   lang = "en",
+  modelEvaluation = [],
 }: {
   kpis: KpiRow[];
   lang?: Lang;
+  modelEvaluation?: ModelEvaluationRow[];
 }) {
   const copy = text[lang];
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -342,6 +521,20 @@ export default function KpiCards({
   const selectedNumberMeaning = selectedKpi
     ? explainValue(selectedKpi.metric, selectedKpi.value, selectedFormattedValue, lang)
     : "";
+  const liveEvaluation = useMemo(
+    () => buildEvaluationSummary(modelEvaluation),
+    [modelEvaluation],
+  );
+  const kpiValues = useMemo(
+    () =>
+      kpis.reduce<Record<string, string | number>>((accumulator, kpi) => {
+        accumulator[kpi.metric] = kpi.value;
+        return accumulator;
+      }, {}),
+    [kpis],
+  );
+  const evaluation =
+    liveEvaluation ?? (matchesLatestCheckedRun(kpiValues) ? latestCheckedEvaluation : null);
   const renderedKpis = useMemo(
     () =>
       kpis.map((kpi) => ({
@@ -430,6 +623,75 @@ export default function KpiCards({
                 <span>{selectedNumberMeaning}</span>
               </p>
             </div>
+
+            {selectedKpi.metric.startsWith("model_") ? (
+              <section className="model-basis-card">
+                <h3>{copy.basisTitle}</h3>
+                {evaluation ? (
+                  <>
+                    <p>
+                      <strong>{copy.testSet}</strong>
+                      <span>
+                        {copy.basisIntro(
+                          wholeNumber(evaluation.testRows, lang),
+                          wholeNumber(evaluation.testActualNoChurn, lang),
+                          wholeNumber(evaluation.testActualChurn, lang),
+                        )}
+                      </span>
+                    </p>
+                    <p>
+                      <strong>{copy.formula}</strong>
+                      <span>
+                        {modelFormula({
+                          evaluation,
+                          kpiValues,
+                          lang,
+                          metric: selectedKpi.metric,
+                          value: selectedKpi.value,
+                        })}
+                      </span>
+                    </p>
+                    <div>
+                      <strong>{copy.confusionMatrix}</strong>
+                      <div className="confusion-grid">
+                        <span>
+                          <small>{copy.confusion.trueNegative}</small>
+                          <b>{wholeNumber(evaluation.trueNegative, lang)}</b>
+                        </span>
+                        <span>
+                          <small>{copy.confusion.falsePositive}</small>
+                          <b>{wholeNumber(evaluation.falsePositive, lang)}</b>
+                        </span>
+                        <span>
+                          <small>{copy.confusion.falseNegative}</small>
+                          <b>{wholeNumber(evaluation.falseNegative, lang)}</b>
+                        </span>
+                        <span>
+                          <small>{copy.confusion.truePositive}</small>
+                          <b>{wholeNumber(evaluation.truePositive, lang)}</b>
+                        </span>
+                      </div>
+                    </div>
+                    {selectedKpi.metric === "model_accuracy" ? (
+                      <p>
+                        <strong>{copy.baseline}</strong>
+                        <span>
+                          {copy.baselineText(
+                            modelPercent(evaluation.baselineAccuracy, lang),
+                            selectedFormattedValue,
+                          )}
+                        </span>
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p>
+                    <strong>{copy.testSet}</strong>
+                    <span>{copy.basisFallback}</span>
+                  </p>
+                )}
+              </section>
+            ) : null}
           </section>
         </div>
       ) : null}

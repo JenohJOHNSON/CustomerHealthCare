@@ -281,6 +281,9 @@ analytics.churn_predictions
 analytics.kpi_summary
   Metric/value rows for dashboard cards.
 
+analytics.model_evaluation
+  Test-set counts and baseline accuracy behind model KPI popups.
+
 analytics.churn_drivers
   Logistic regression coefficients used for model explanation.
 
@@ -398,6 +401,7 @@ The script creates:
 - `analytics.customer_health`
 - `analytics.churn_predictions`
 - `analytics.kpi_summary`
+- `analytics.model_evaluation`
 - `analytics.churn_drivers`
 - `analytics.pipeline_runs`
 
@@ -445,6 +449,7 @@ Manual database checks:
 ```sql
 SELECT COUNT(*) FROM raw.customer_churn;
 SELECT * FROM analytics.kpi_summary;
+SELECT * FROM analytics.model_evaluation;
 SELECT COUNT(*) FROM analytics.churn_predictions;
 SELECT * FROM analytics.pipeline_runs ORDER BY run_time DESC;
 ```

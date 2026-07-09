@@ -10,6 +10,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
+    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
@@ -198,6 +199,12 @@ def train_model(df: pd.DataFrame):
 
     y_pred = pipeline.predict(x_test)
     y_prob = pipeline.predict_proba(x_test)[:, 1]
+    true_negative, false_positive, false_negative, true_positive = confusion_matrix(
+        y_test,
+        y_pred,
+        labels=[0, 1],
+    ).ravel()
+    baseline_accuracy = max((y_test == 0).mean(), (y_test == 1).mean())
 
     metrics = {
         "accuracy": float(accuracy_score(y_test, y_pred)),
@@ -206,12 +213,23 @@ def train_model(df: pd.DataFrame):
         "f1": float(f1_score(y_test, y_pred, zero_division=0)),
         "roc_auc": float(roc_auc_score(y_test, y_prob)),
     }
+    evaluation = {
+        "test_rows": int(len(y_test)),
+        "test_actual_no_churn": int((y_test == 0).sum()),
+        "test_actual_churn": int((y_test == 1).sum()),
+        "true_negative": int(true_negative),
+        "false_positive": int(false_positive),
+        "false_negative": int(false_negative),
+        "true_positive": int(true_positive),
+        "baseline_accuracy": float(baseline_accuracy),
+    }
 
     print("Model metrics:", metrics)
-    return pipeline, x, metrics
+    print("Model evaluation:", evaluation)
+    return pipeline, x, metrics, evaluation
 
 
-def write_analytics_tables(engine, df: pd.DataFrame, pipeline, x, metrics):
+def write_analytics_tables(engine, df: pd.DataFrame, pipeline, x, metrics, evaluation):
     df.to_sql(
         "customer_health",
         engine,
@@ -283,6 +301,37 @@ def write_analytics_tables(engine, df: pd.DataFrame, pipeline, x, metrics):
     )
     print("Saved analytics.kpi_summary")
 
+    model_evaluation = pd.DataFrame(
+        [
+            {"metric": "test_rows", "value": evaluation["test_rows"]},
+            {
+                "metric": "test_actual_no_churn",
+                "value": evaluation["test_actual_no_churn"],
+            },
+            {
+                "metric": "test_actual_churn",
+                "value": evaluation["test_actual_churn"],
+            },
+            {"metric": "true_negative", "value": evaluation["true_negative"]},
+            {"metric": "false_positive", "value": evaluation["false_positive"]},
+            {"metric": "false_negative", "value": evaluation["false_negative"]},
+            {"metric": "true_positive", "value": evaluation["true_positive"]},
+            {
+                "metric": "baseline_accuracy",
+                "value": round(evaluation["baseline_accuracy"], 4),
+            },
+        ]
+    )
+
+    model_evaluation.to_sql(
+        "model_evaluation",
+        engine,
+        schema="analytics",
+        if_exists="replace",
+        index=False,
+    )
+    print("Saved analytics.model_evaluation")
+
     feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
     coefficients = pipeline.named_steps["model"].coef_[0]
 
@@ -328,8 +377,8 @@ def main():
     if df.empty:
         raise RuntimeError("No usable rows found after cleaning raw customer data.")
 
-    pipeline, x, metrics = train_model(df)
-    write_analytics_tables(engine, df, pipeline, x, metrics)
+    pipeline, x, metrics, evaluation = train_model(df)
+    write_analytics_tables(engine, df, pipeline, x, metrics, evaluation)
     record_pipeline_run(
         engine,
         "success",

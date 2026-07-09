@@ -74,6 +74,21 @@ Examples:
 - `model_f1`
 - `model_roc_auc`
 
+### `analytics.model_evaluation`
+
+Metric/value rows that explain the basis for model KPI cards.
+
+Examples:
+
+- `test_rows`
+- `test_actual_no_churn`
+- `test_actual_churn`
+- `true_negative`
+- `false_positive`
+- `false_negative`
+- `true_positive`
+- `baseline_accuracy`
+
 ### `analytics.churn_drivers`
 
 Top logistic regression coefficients sorted by absolute importance.
@@ -100,6 +115,7 @@ Columns:
 ## App Usage
 
 - Dashboard KPI cards read from `analytics.kpi_summary`.
+- Model KPI popups read confusion-matrix details from `analytics.model_evaluation`.
 - High-risk customer table reads from `analytics.churn_predictions`.
 - Churn driver list and popups read from `analytics.churn_drivers`.
 - All Customer Analysis joins `analytics.churn_predictions` with `analytics.customer_health`.

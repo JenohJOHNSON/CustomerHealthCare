@@ -34,12 +34,18 @@ type DriverRow = {
   importance: string | number;
 };
 
+type ModelEvaluationRow = {
+  metric: string;
+  value: string | number;
+};
+
 type DashboardData = {
   configured: boolean;
   error?: string;
   kpis: KpiRow[];
   highRiskCustomers: CustomerRow[];
   drivers: DriverRow[];
+  modelEvaluation: ModelEvaluationRow[];
 };
 
 const text = {
@@ -269,6 +275,7 @@ async function getDashboardData(): Promise<DashboardData> {
       kpis: [],
       highRiskCustomers: [],
       drivers: [],
+      modelEvaluation: [],
     };
   }
 
@@ -293,12 +300,25 @@ async function getDashboardData(): Promise<DashboardData> {
         LIMIT 10
       `),
     ]);
+    let modelEvaluation: ModelEvaluationRow[] = [];
+
+    try {
+      const evaluation = await query<ModelEvaluationRow>(`
+        SELECT metric, value
+        FROM analytics.model_evaluation
+        ORDER BY metric
+      `);
+      modelEvaluation = evaluation.rows;
+    } catch {
+      modelEvaluation = [];
+    }
 
     return {
       configured: true,
       kpis: kpis.rows,
       highRiskCustomers: highRiskCustomers.rows,
       drivers: drivers.rows,
+      modelEvaluation,
     };
   } catch (error) {
     return {
@@ -307,6 +327,7 @@ async function getDashboardData(): Promise<DashboardData> {
       kpis: [],
       highRiskCustomers: [],
       drivers: [],
+      modelEvaluation: [],
     };
   }
 }
@@ -390,7 +411,11 @@ export default async function HomePage({ searchParams }: LangPageProps) {
 
           <h2>{copy.kpisTitle}</h2>
           {data.kpis.length ? (
-            <KpiCards kpis={data.kpis} lang={lang} />
+            <KpiCards
+              kpis={data.kpis}
+              lang={lang}
+              modelEvaluation={data.modelEvaluation}
+            />
           ) : (
             <div className="empty">{copy.emptyKpis}</div>
           )}
