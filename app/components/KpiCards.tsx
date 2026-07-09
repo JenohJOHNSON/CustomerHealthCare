@@ -43,204 +43,204 @@ const latestCheckedEvaluation: EvaluationSummary = {
 
 const text = {
   en: {
-    clickHint: "Click any KPI card to see what the number means.",
-    modalTitle: "KPI explanation",
-    currentNumber: "Current number",
-    meaning: "What this KPI means",
-    calculation: "How it is calculated",
-    numberMeaning: "What this number tells us",
+    clickHint: "Click any number card to see what it means.",
+    modalTitle: "Number explanation",
+    currentNumber: "Number shown",
+    meaning: "What this number means",
+    calculation: "How we get this number",
+    numberMeaning: "What this tells us",
     close: "Close",
-    open: "Explain KPI",
-    basisTitle: "Basis for this model score",
-    testSet: "Test set used",
+    open: "Explain this number",
+    basisTitle: "Where this model score comes from",
+    testSet: "Rows used to test the model",
     formula: "Formula with this run's numbers",
-    confusionMatrix: "Confusion matrix",
-    baseline: "Baseline comparison",
+    confusionMatrix: "Prediction result counts",
+    baseline: "Simple comparison",
     basisFallback:
-      "This model score is calculated on the 25% holdout test set. Rerun the Python pipeline to populate the exact confusion-matrix counts in analytics.model_evaluation.",
+      "This model score is calculated on the 25% of customers saved for testing. Rerun the Python data job to fill the exact prediction counts.",
     noNumber:
       "This value is not numeric, so the dashboard can show it but cannot calculate a numeric interpretation.",
     basisIntro: (testRows: string, noChurn: string, churn: string) =>
-      `These scores are based on the 25% holdout test set, not the training rows. This run tested ${testRows} customers: ${noChurn} actual no-churn customers and ${churn} actual churn customers.`,
+      `These scores come from customers the model did not train on. This run tested ${testRows} customers: ${noChurn} customers stayed and ${churn} customers left.`,
     baselineText: (baseline: string, score: string) =>
-      `If we always predicted "No churn", the baseline accuracy would be ${baseline}. This model's accuracy is ${score}, so it performs better than that simple baseline.`,
+      `If we simply guessed every customer would stay, the score would be ${baseline}. This model scored ${score}, so it did better than that simple guess.`,
     confusion: {
-      trueNegative: "Correct no-churn predictions",
-      falsePositive: "Wrong churn warnings",
-      falseNegative: "Missed churn customers",
-      truePositive: "Correct churn predictions",
+      trueNegative: "Correctly said stayed",
+      falsePositive: "Warned leave, but stayed",
+      falseNegative: "Missed customers who left",
+      truePositive: "Correctly found leavers",
     },
     fallback: {
-      meaning: "A dashboard metric written by the analytics pipeline.",
+      meaning: "A number created by the data pipeline for the dashboard.",
       calculation:
-        "This value comes from analytics.kpi_summary after the Python pipeline finishes.",
+        "This value is saved after the Python pipeline finishes.",
     },
     metrics: {
       total_customers: {
-        label: "Total customers",
-        meaning: "The number of cleaned customer records included in the analysis.",
-        calculation: "Count every row in the cleaned customer dataset.",
+        label: "Customers",
+        meaning: "The number of customer rows included after cleaning the data.",
+        calculation: "Count every clean customer row.",
       },
       actual_churn_rate_percent: {
-        label: "Actual churn rate",
-        meaning: "The percent of customers in the historical data who actually churned.",
+        label: "Customers who really left",
+        meaning: "The percent of customers in the data who actually stopped service.",
         calculation:
-          "Count customers where Churn is Yes, divide by total customers, then multiply by 100.",
+          "Count customers marked Yes for leaving, divide by all customers, then multiply by 100.",
       },
       avg_churn_probability_percent: {
-        label: "Average churn probability",
+        label: "Average chance of leaving",
         meaning:
-          "The average churn risk predicted by the machine learning model across all customers.",
+          "The average chance of leaving predicted by the model across all customers.",
         calculation:
-          "Average every customer's predicted churn probability, then multiply by 100.",
+          "Average every customer's predicted chance of leaving, then multiply by 100.",
       },
       high_risk_customers: {
-        label: "High-risk customers",
-        meaning: "The number of customers the model labels as high risk.",
+        label: "Likely to leave",
+        meaning: "The number of customers the model says are likely to leave.",
         calculation:
-          "Count customers whose predicted churn probability is 70% or higher.",
+          "Count customers whose predicted chance of leaving is 70% or higher.",
       },
       monthly_revenue_at_risk: {
-        label: "Monthly revenue at risk",
+        label: "Monthly bill at risk",
         meaning:
-          "The monthly charges connected to customers currently labeled as high risk.",
-        calculation: "Add monthly charges for all high-risk customers.",
+          "The monthly bills connected to customers currently likely to leave.",
+        calculation: "Add monthly bills for all customers likely to leave.",
       },
       model_accuracy: {
-        label: "Model accuracy",
+        label: "Model correct rate",
         meaning:
-          "How often the model made the correct churn or no-churn prediction on test data.",
+          "How often the model was right when tested on customers it had not trained on.",
         calculation: "Correct predictions divided by all test predictions.",
       },
       model_precision: {
-        label: "Model precision",
+        label: "Warning accuracy",
         meaning:
-          "When the model predicts churn, precision shows how often that warning is correct.",
+          "When the model warns that a customer may leave, this shows how often that warning is right.",
         calculation:
-          "True churn predictions divided by all customers predicted as churn.",
+          "Correct leave warnings divided by all leave warnings.",
       },
       model_recall: {
-        label: "Model recall",
+        label: "Leaver catch rate",
         meaning:
-          "Recall shows how many actual churn customers the model successfully found.",
+          "How many customers who really left were caught by the model.",
         calculation:
-          "True churn predictions divided by all customers who actually churned.",
+          "Correctly found leavers divided by all customers who really left.",
       },
       model_f1: {
-        label: "Model F1 score",
+        label: "Model balance score",
         meaning:
-          "A balanced score that combines precision and recall into one model-quality number.",
-        calculation: "The harmonic mean of precision and recall.",
+          "One score that balances warning accuracy and leaver catch rate.",
+        calculation: "A balanced average of warning accuracy and leaver catch rate.",
       },
       model_roc_auc: {
-        label: "Model ROC AUC",
+        label: "Risk ranking score",
         meaning:
-          "How well the model ranks churn-risk customers above lower-risk customers.",
+          "How well the model ranks customers who may leave above customers who are safer.",
         calculation:
-          "Area under the ROC curve. 50% is random guessing, and 100% is perfect ranking.",
+          "A ranking score where 50% is random guessing and 100% is perfect ranking.",
       },
     },
   },
   fr: {
     clickHint:
-      "Cliquez sur une carte KPI pour comprendre ce que signifie le nombre.",
-    modalTitle: "Explication du KPI",
-    currentNumber: "Nombre actuel",
-    meaning: "Ce que ce KPI signifie",
-    calculation: "Comment il est calculé",
+      "Cliquez sur une carte de chiffre pour comprendre ce que signifie le nombre.",
+    modalTitle: "Explication du chiffre",
+    currentNumber: "Nombre affiché",
+    meaning: "Ce que ce nombre signifie",
+    calculation: "Comment on obtient ce nombre",
     numberMeaning: "Ce que ce nombre nous dit",
     close: "Fermer",
-    open: "Expliquer le KPI",
-    basisTitle: "Base de ce score modèle",
-    testSet: "Jeu de test utilisé",
+    open: "Expliquer ce nombre",
+    basisTitle: "D'où vient ce score du modèle",
+    testSet: "Lignes utilisées pour tester le modèle",
     formula: "Formule avec les nombres de cette exécution",
-    confusionMatrix: "Matrice de confusion",
-    baseline: "Comparaison au baseline",
+    confusionMatrix: "Résultats de prédiction",
+    baseline: "Comparaison simple",
     basisFallback:
-      "Ce score modèle est calculé sur le jeu de test de 25%. Relancez le pipeline Python pour remplir les nombres exacts de matrice de confusion dans analytics.model_evaluation.",
+      "Ce score modèle est calculé sur les 25% de clients gardés pour le test. Relancez le travail Python pour remplir les nombres exacts de prédiction.",
     noNumber:
       "Cette valeur n'est pas numérique, donc le tableau peut l'afficher mais ne peut pas produire une interprétation chiffrée.",
     basisIntro: (testRows: string, noChurn: string, churn: string) =>
-      `Ces scores sont basés sur le jeu de test de 25%, pas sur les lignes d'entraînement. Cette exécution a testé ${testRows} clients : ${noChurn} vrais clients non-churn et ${churn} vrais clients churn.`,
+      `Ces scores viennent de clients que le modèle n'a pas utilisés pour apprendre. Cette exécution a testé ${testRows} clients : ${noChurn} clients sont restés et ${churn} clients sont partis.`,
     baselineText: (baseline: string, score: string) =>
-      `Si on prédisait toujours « No churn », l'exactitude baseline serait ${baseline}. L'exactitude de ce modèle est ${score}, donc il fait mieux que ce baseline simple.`,
+      `Si on devinait simplement que chaque client reste, le score serait ${baseline}. Ce modèle a obtenu ${score}, donc il fait mieux que cette supposition simple.`,
     confusion: {
-      trueNegative: "Prédictions non-churn correctes",
-      falsePositive: "Alertes churn incorrectes",
-      falseNegative: "Clients churn manqués",
-      truePositive: "Prédictions churn correctes",
+      trueNegative: "A bien dit reste",
+      falsePositive: "A prévenu départ, mais le client est resté",
+      falseNegative: "A manqué des clients partis",
+      truePositive: "A bien trouvé les départs",
     },
     fallback: {
-      meaning: "Une métrique du tableau écrite par le pipeline analytics.",
+      meaning: "Un nombre créé par le pipeline pour le tableau.",
       calculation:
-        "Cette valeur vient de analytics.kpi_summary après l'exécution du pipeline Python.",
+        "Cette valeur est sauvegardée après l'exécution du pipeline Python.",
     },
     metrics: {
       total_customers: {
-        label: "Clients totaux",
-        meaning: "Le nombre de lignes client nettoyées incluses dans l'analyse.",
-        calculation: "Compter chaque ligne du jeu de données client nettoyé.",
+        label: "Clients",
+        meaning: "Le nombre de lignes client gardées après le nettoyage des données.",
+        calculation: "Compter chaque ligne client propre.",
       },
       actual_churn_rate_percent: {
-        label: "Taux de churn réel",
+        label: "Clients vraiment partis",
         meaning:
-          "Le pourcentage de clients des données historiques qui ont vraiment quitté.",
+          "Le pourcentage de clients qui ont vraiment arrêté le service dans les données.",
         calculation:
-          "Compter les clients où Churn vaut Yes, diviser par le total des clients, puis multiplier par 100.",
+          "Compter les clients marqués Yes pour le départ, diviser par tous les clients, puis multiplier par 100.",
       },
       avg_churn_probability_percent: {
-        label: "Probabilité moyenne de churn",
+        label: "Chance moyenne de partir",
         meaning:
-          "Le risque moyen de churn prédit par le modèle de machine learning pour tous les clients.",
+          "La chance moyenne de départ prédite par le modèle pour tous les clients.",
         calculation:
-          "Faire la moyenne des probabilités de churn prédites, puis multiplier par 100.",
+          "Faire la moyenne des chances de départ prédites, puis multiplier par 100.",
       },
       high_risk_customers: {
-        label: "Clients à haut risque",
-        meaning: "Le nombre de clients que le modèle classe comme haut risque.",
+        label: "Susceptibles de partir",
+        meaning: "Le nombre de clients que le modèle pense susceptibles de partir.",
         calculation:
-          "Compter les clients dont la probabilité de churn prédite est de 70% ou plus.",
+          "Compter les clients dont la chance de départ prédite est de 70% ou plus.",
       },
       monthly_revenue_at_risk: {
-        label: "Revenu mensuel à risque",
+        label: "Facture mensuelle à risque",
         meaning:
-          "Les charges mensuelles liées aux clients actuellement classés à haut risque.",
+          "Les factures mensuelles liées aux clients actuellement susceptibles de partir.",
         calculation:
-          "Additionner les charges mensuelles de tous les clients à haut risque.",
+          "Additionner les factures mensuelles de tous les clients susceptibles de partir.",
       },
       model_accuracy: {
-        label: "Exactitude du modèle",
+        label: "Taux de bonnes réponses",
         meaning:
-          "La fréquence à laquelle le modèle prédit correctement churn ou non-churn sur les données de test.",
+          "La fréquence à laquelle le modèle a raison sur des clients qu'il n'a pas utilisés pour apprendre.",
         calculation:
           "Prédictions correctes divisées par toutes les prédictions de test.",
       },
       model_precision: {
-        label: "Précision du modèle",
+        label: "Qualité des alertes",
         meaning:
-          "Quand le modèle prédit churn, la précision indique à quelle fréquence cette alerte est correcte.",
+          "Quand le modèle prévient qu'un client peut partir, ce score montre combien de fois l'alerte est correcte.",
         calculation:
-          "Vraies prédictions de churn divisées par tous les clients prédits comme churn.",
+          "Alertes départ correctes divisées par toutes les alertes départ.",
       },
       model_recall: {
-        label: "Rappel du modèle",
+        label: "Départs retrouvés",
         meaning:
-          "Le rappel indique combien de vrais clients churn le modèle a réussi à trouver.",
+          "Combien de clients vraiment partis ont été trouvés par le modèle.",
         calculation:
-          "Vraies prédictions de churn divisées par tous les clients qui ont vraiment churné.",
+          "Départs correctement trouvés divisés par tous les clients vraiment partis.",
       },
       model_f1: {
-        label: "Score F1 du modèle",
+        label: "Score d'équilibre",
         meaning:
-          "Un score équilibré qui combine précision et rappel dans un seul nombre de qualité du modèle.",
-        calculation: "La moyenne harmonique de la précision et du rappel.",
+          "Un score qui équilibre la qualité des alertes et les départs retrouvés.",
+        calculation: "Une moyenne équilibrée entre qualité des alertes et départs retrouvés.",
       },
       model_roc_auc: {
-        label: "ROC AUC du modèle",
+        label: "Score de classement du risque",
         meaning:
-          "La capacité du modèle à classer les clients à risque de churn au-dessus des clients moins risqués.",
+          "La capacité du modèle à placer les clients qui peuvent partir au-dessus des clients plus sûrs.",
         calculation:
-          "Aire sous la courbe ROC. 50% correspond au hasard, et 100% à un classement parfait.",
+          "Un score de classement où 50% correspond au hasard et 100% à un classement parfait.",
       },
     },
   },
@@ -396,7 +396,7 @@ function modelFormula({
   metric: string;
   value: string | number;
 }) {
-  // Show the exact formula behind each model KPI using this run's counts.
+  // Show the exact formula behind each model score using this run's counts.
   const numeric = numericValue(value) ?? 0;
   const result = modelPercent(numeric, lang);
   const testRows = wholeNumber(evaluation.testRows, lang);
@@ -412,15 +412,15 @@ function modelFormula({
   if (lang === "fr") {
     switch (metric) {
       case "model_accuracy":
-        return `Exactitude = (vrais négatifs + vrais positifs) / lignes de test = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
+        return `Taux de bonnes réponses = (clients restés bien prédits + clients partis bien prédits) / lignes de test = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
       case "model_precision":
-        return `Précision = vrais positifs / (vrais positifs + faux positifs) = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
+        return `Qualité des alertes = départs bien trouvés / toutes les alertes départ = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
       case "model_recall":
-        return `Rappel = vrais positifs / (vrais positifs + faux négatifs) = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
+        return `Départs retrouvés = départs bien trouvés / tous les vrais départs = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
       case "model_f1":
-        return `F1 = 2 x (précision x rappel) / (précision + rappel) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
+        return `Score d'équilibre = 2 x (qualité des alertes x départs retrouvés) / (qualité des alertes + départs retrouvés) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
       case "model_roc_auc":
-        return `ROC AUC utilise les probabilités de churn prédites sur le même jeu de test. 50% correspond au hasard, 100% à un classement parfait. Cette exécution obtient ${result}.`;
+        return `Le score de classement utilise les chances de départ prédites sur le même jeu de test. 50% correspond au hasard, 100% à un classement parfait. Cette exécution obtient ${result}.`;
       default:
         return `Ce score est calculé sur le jeu de test de ${testRows} lignes.`;
     }
@@ -428,15 +428,15 @@ function modelFormula({
 
   switch (metric) {
     case "model_accuracy":
-      return `Accuracy = (true negatives + true positives) / test rows = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
+      return `Correct rate = (correctly predicted stay + correctly predicted leave) / test rows = (${trueNegative} + ${truePositive}) / ${testRows} = ${result}.`;
     case "model_precision":
-      return `Precision = true positives / (true positives + false positives) = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
+      return `Warning accuracy = correctly found leavers / all leave warnings = ${truePositive} / (${truePositive} + ${falsePositive}) = ${result}.`;
     case "model_recall":
-      return `Recall = true positives / (true positives + false negatives) = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
+      return `Leaver catch rate = correctly found leavers / all real leavers = ${truePositive} / (${truePositive} + ${falseNegative}) = ${result}.`;
     case "model_f1":
-      return `F1 = 2 x (precision x recall) / (precision + recall) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
+      return `Balance score = 2 x (warning accuracy x leaver catch rate) / (warning accuracy + leaver catch rate) = 2 x (${precisionPercent} x ${recallPercent}) / (${precisionPercent} + ${recallPercent}) = ${result}.`;
     case "model_roc_auc":
-      return `ROC AUC uses predicted churn probabilities on the same test set. 50% is random ranking, 100% is perfect ranking. This run scored ${result}.`;
+      return `Risk ranking uses predicted chances of leaving on the same test set. 50% is random ranking, 100% is perfect ranking. This run scored ${result}.`;
     default:
       return `This score is calculated on the ${testRows}-row test set.`;
   }
@@ -453,53 +453,53 @@ function explainValue(metric: string, value: string | number, formatted: string,
   if (lang === "fr") {
     switch (metric) {
       case "total_customers":
-        return `${formatted} signifie que le pipeline a analysé ${formatted} lignes client nettoyées. Les KPI et les prédictions du tableau reposent sur ces clients.`;
+        return `${formatted} signifie que le pipeline a analysé ${formatted} lignes client nettoyées. Les chiffres et les prédictions du tableau reposent sur ces clients.`;
       case "actual_churn_rate_percent":
         return `${formatted} signifie qu'environ ${percentCount(numeric, lang)} clients sur 100 ont vraiment quitté dans les données historiques.`;
       case "avg_churn_probability_percent":
-        return `${formatted} signifie que, en moyenne, le modèle estime ce niveau de risque de churn pour l'ensemble des clients.`;
+        return `${formatted} signifie que, en moyenne, le modèle estime cette chance de départ pour l'ensemble des clients.`;
       case "high_risk_customers":
-        return `${formatted} clients ont une probabilité de churn prédite de 70% ou plus. Ce sont les clients à regarder en priorité.`;
+        return `${formatted} clients ont une chance de départ prédite de 70% ou plus. Ce sont les clients à regarder en priorité.`;
       case "monthly_revenue_at_risk":
         return `${formatted} représente le revenu mensuel exposé si les clients à haut risque quittent le service.`;
       case "model_accuracy":
-        return `${formatted} signifie que le modèle a donné une réponse correcte environ ${modelPercent(numeric, lang)} du temps sur les données de test.`;
+        return `${formatted} signifie que le modèle a donné une bonne réponse environ ${modelPercent(numeric, lang)} du temps sur les données de test.`;
       case "model_precision":
-        return `${formatted} signifie que, parmi les clients signalés comme churn probable, environ ${modelPercent(numeric, lang)} étaient réellement des churners dans le test.`;
+        return `${formatted} signifie que, parmi les clients signalés comme susceptibles de partir, environ ${modelPercent(numeric, lang)} sont vraiment partis dans le test.`;
       case "model_recall":
-        return `${formatted} signifie que le modèle a retrouvé environ ${modelPercent(numeric, lang)} des vrais clients churn dans le test.`;
+        return `${formatted} signifie que le modèle a retrouvé environ ${modelPercent(numeric, lang)} des clients vraiment partis dans le test.`;
       case "model_f1":
-        return `${formatted} résume l'équilibre entre précision et rappel. Plus le score est proche de 100%, meilleur est cet équilibre.`;
+        return `${formatted} résume l'équilibre entre la qualité des alertes et les départs retrouvés. Plus le score est proche de 100%, meilleur est cet équilibre.`;
       case "model_roc_auc":
         return `${formatted} montre la qualité du classement du modèle. Plus ce nombre est proche de 100%, mieux le modèle sépare les clients à risque des autres.`;
       default:
-        return `${formatted} est la valeur actuelle écrite par le pipeline analytics pour ce KPI.`;
+        return `${formatted} est la valeur actuelle écrite par le pipeline pour ce chiffre du tableau.`;
     }
   }
 
   switch (metric) {
     case "total_customers":
-      return `${formatted} means the pipeline analyzed ${formatted} cleaned customer records. The dashboard KPIs and predictions are based on these customers.`;
+      return `${formatted} means the pipeline analyzed ${formatted} cleaned customer records. The dashboard numbers and predictions are based on these customers.`;
     case "actual_churn_rate_percent":
-      return `${formatted} means about ${percentCount(numeric, lang)} out of every 100 customers actually churned in the historical data.`;
+      return `${formatted} means about ${percentCount(numeric, lang)} out of every 100 customers actually left in the historical data.`;
     case "avg_churn_probability_percent":
-      return `${formatted} means the model estimates this average churn risk across all customers.`;
+      return `${formatted} means the model estimates this average chance of leaving across all customers.`;
     case "high_risk_customers":
-      return `${formatted} customers have a predicted churn probability of 70% or higher. These are the customers to review first.`;
+      return `${formatted} customers have a predicted chance of leaving of 70% or higher. These are the customers to review first.`;
     case "monthly_revenue_at_risk":
-      return `${formatted} is the monthly revenue exposed if the high-risk customers leave the service.`;
+      return `${formatted} is the monthly money exposed if the likely-to-leave customers leave the service.`;
     case "model_accuracy":
-      return `${formatted} means the model gave the correct answer about ${modelPercent(numeric, lang)} of the time on test data.`;
+      return `${formatted} means the model gave the right answer about ${modelPercent(numeric, lang)} of the time on test data.`;
     case "model_precision":
-      return `${formatted} means that, among customers flagged as likely churners, about ${modelPercent(numeric, lang)} were actually churners in the test set.`;
+      return `${formatted} means that, among customers warned as likely to leave, about ${modelPercent(numeric, lang)} really left in the test set.`;
     case "model_recall":
-      return `${formatted} means the model found about ${modelPercent(numeric, lang)} of the true churn customers in the test set.`;
+      return `${formatted} means the model found about ${modelPercent(numeric, lang)} of the customers who really left in the test set.`;
     case "model_f1":
-      return `${formatted} summarizes the balance between precision and recall. Closer to 100% means a stronger balance.`;
+      return `${formatted} summarizes the balance between warning accuracy and leaver catch rate. Closer to 100% means a stronger balance.`;
     case "model_roc_auc":
-      return `${formatted} shows ranking quality. Closer to 100% means the model is better at ranking high-risk customers above lower-risk customers.`;
+      return `${formatted} shows ranking quality. Closer to 100% means the model is better at ranking customers who may leave above customers who are safer.`;
     default:
-      return `${formatted} is the current value written by the analytics pipeline for this KPI.`;
+      return `${formatted} is the current value written by the data pipeline for this dashboard number.`;
   }
 }
 

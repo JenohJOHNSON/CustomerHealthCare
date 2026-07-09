@@ -11,27 +11,27 @@ type Message = {
 const text = {
   en: {
     greeting:
-      "Hi, I am the Airbyte Data Chatbot. Ask me about churn risk, KPIs, high-risk customers, or churn drivers.",
+      "Hi, I am the data chatbot. Ask me which customers may leave, why they may leave, or what the main numbers mean.",
     fallback: "Sorry, I could not answer that question yet.",
     unreachable:
-      "I could not reach the chatbot API. Check that the app is running and environment variables are set.",
-    placeholder: "Example: What are the main churn drivers?",
+      "I could not reach the chatbot. Check that the app is running and the setup values are added.",
+    placeholder: "Example: Which customers are most likely to leave?",
     ask: "Ask",
     thinking: "Thinking...",
-    label: "Ask the Airbyte Data Chatbot",
-    aria: "Airbyte Data Chatbot",
+    label: "Ask the data chatbot",
+    aria: "Data chatbot",
   },
   fr: {
     greeting:
-      "Bonjour, je suis le chatbot de données Airbyte. Posez une question sur le risque de churn, les KPI, les clients à risque ou les facteurs de churn.",
+      "Bonjour, je suis le chatbot data. Posez une question sur les clients qui peuvent partir, les raisons possibles ou les chiffres clés.",
     fallback: "Désolé, je ne peux pas encore répondre à cette question.",
     unreachable:
-      "Je ne peux pas joindre l'API du chatbot. Vérifiez que l'application fonctionne et que les variables d'environnement sont configurées.",
-    placeholder: "Exemple : Quels sont les principaux facteurs de churn ?",
+      "Je ne peux pas joindre le chatbot. Vérifiez que l'application fonctionne et que les valeurs de configuration sont ajoutées.",
+    placeholder: "Exemple : Quels clients sont les plus susceptibles de partir ?",
     ask: "Demander",
     thinking: "Analyse...",
-    label: "Poser une question au chatbot Airbyte",
-    aria: "Chatbot de données Airbyte",
+    label: "Poser une question au chatbot data",
+    aria: "Chatbot data",
   },
 };
 

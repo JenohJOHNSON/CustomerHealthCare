@@ -10,7 +10,7 @@ const labels = {
   en: {
     brand: "Customer Health",
     description:
-      "Portfolio-grade prototype: public demo data, Airbyte ingestion, PostgreSQL analytics, Python ML, Vercel delivery, and OpenAI explanations.",
+      "A simple cloud dashboard that uses public customer data to show who may leave, why they may leave, and what money is at risk.",
     links: "Profile links",
     github: "GitHub",
     linkedin: "LinkedIn",
@@ -18,7 +18,7 @@ const labels = {
   fr: {
     brand: "Santé Client",
     description:
-      "Prototype portfolio : données publiques, ingestion Airbyte, analyses PostgreSQL, ML Python, livraison Vercel et explications OpenAI.",
+      "Un tableau cloud simple qui utilise des données clients publiques pour montrer qui risque de partir, pourquoi et quel revenu est à risque.",
     links: "Liens de profil",
     github: "GitHub",
     linkedin: "LinkedIn",

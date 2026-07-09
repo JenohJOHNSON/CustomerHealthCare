@@ -5,23 +5,23 @@ import type { Lang } from "@/lib/i18n";
 
 const text = {
   en: {
-    idle: "Optional: trigger a fresh Airbyte sync.",
-    starting: "Starting Airbyte sync...",
-    fallback: "Airbyte sync could not be started. Check the API token and connection ID.",
-    success: "Airbyte sync started.",
-    unreachable: "The sync route could not be reached.",
-    button: "Trigger Airbyte Sync",
-    loading: "Starting...",
+    idle: "Optional: refresh the source data from Airbyte.",
+    starting: "Starting data refresh...",
+    fallback: "The data refresh could not start. Check the Airbyte API token and connection ID.",
+    success: "Data refresh started.",
+    unreachable: "The data refresh route could not be reached.",
+    button: "Refresh Data",
+    loading: "Refreshing...",
   },
   fr: {
-    idle: "Optionnel : lancer une nouvelle synchronisation Airbyte.",
-    starting: "Démarrage de la synchronisation Airbyte...",
+    idle: "Optionnel : actualiser les données source depuis Airbyte.",
+    starting: "Démarrage de l'actualisation des données...",
     fallback:
-      "La synchronisation Airbyte n'a pas pu démarrer. Vérifiez le jeton API et l'ID de connexion.",
-    success: "Synchronisation Airbyte démarrée.",
-    unreachable: "La route de synchronisation est inaccessible.",
-    button: "Lancer la sync Airbyte",
-    loading: "Démarrage...",
+      "L'actualisation des données n'a pas pu démarrer. Vérifiez le jeton API Airbyte et l'ID de connexion.",
+    success: "Actualisation des données démarrée.",
+    unreachable: "La route d'actualisation des données est inaccessible.",
+    button: "Actualiser les données",
+    loading: "Actualisation...",
   },
 };
 

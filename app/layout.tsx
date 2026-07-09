@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Customer Health Intelligence Pipeline",
+  title: "Customer Leaving Risk Dashboard",
   description:
-    "Cloud customer churn analytics with Airbyte, Neon PostgreSQL, Python, Next.js, and OpenAI.",
+    "A simple dashboard that shows which customers may leave, why they may leave, and what revenue is at risk.",
 };
 
 export default function RootLayout({

@@ -9,6 +9,37 @@ type ChatRequest = {
   message?: string;
 };
 
+type KpiContextRow = {
+  metric: string;
+  value: string | number;
+};
+
+type DriverContextRow = {
+  feature: string;
+  importance: string | number;
+};
+
+type HighRiskContextRow = {
+  customerid: string;
+  churn_probability: string | number;
+  contract: string;
+  monthlycharges: string | number;
+  tenure: string | number;
+};
+
+const friendlyMetricNames: Record<string, string> = {
+  actual_churn_rate_percent: "customers_who_really_left_percent",
+  avg_churn_probability_percent: "average_chance_of_leaving_percent",
+  high_risk_customers: "customers_likely_to_leave",
+  model_accuracy: "model_correct_rate",
+  model_f1: "model_balance_score",
+  model_precision: "warning_accuracy",
+  model_recall: "leaver_catch_rate",
+  model_roc_auc: "risk_ranking_score",
+  monthly_revenue_at_risk: "monthly_bill_at_risk",
+  total_customers: "customers",
+};
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
@@ -64,8 +95,8 @@ export async function POST(request: Request) {
         {
           answer:
             lang === "fr"
-              ? "Le chatbot est prêt, mais DATABASE_URL n'est pas encore configuré. Ajoutez la chaîne PostgreSQL en lecture seule dans Vercel pour répondre avec les tables analytics."
-              : "The chatbot is ready, but DATABASE_URL is not configured yet. Add the Vercel read-only PostgreSQL connection string to answer questions from analytics tables.",
+              ? "Le chatbot est prêt, mais DATABASE_URL n'est pas encore configuré. Ajoutez l'URL Neon en lecture seule dans Vercel pour répondre avec les données du tableau."
+              : "The chatbot is ready, but DATABASE_URL is not configured yet. Add the Vercel read-only Neon URL so it can answer from the dashboard data.",
         },
         { status: 200 },
       );
@@ -84,18 +115,18 @@ export async function POST(request: Request) {
     }
 
     const [kpis, drivers, highRisk] = await Promise.all([
-      query(`
+      query<KpiContextRow>(`
         SELECT metric, value
         FROM analytics.kpi_summary
         ORDER BY metric
       `),
-      query(`
+      query<DriverContextRow>(`
         SELECT feature, importance
         FROM analytics.churn_drivers
         ORDER BY abs_importance DESC
         LIMIT 10
       `),
-      query(`
+      query<HighRiskContextRow>(`
         SELECT customerid, churn_probability, monthlycharges, contract, tenure
         FROM analytics.churn_predictions
         WHERE risk_level = 'High'
@@ -105,9 +136,21 @@ export async function POST(request: Request) {
     ]);
 
     const context = {
-      kpis: kpis.rows,
-      top_churn_drivers: drivers.rows,
-      sample_high_risk_customers: highRisk.rows,
+      main_numbers: kpis.rows.map((row) => ({
+        name: friendlyMetricNames[row.metric] ?? row.metric,
+        value: row.value,
+      })),
+      strongest_reasons_customers_may_leave: drivers.rows.map((row) => ({
+        original_data_column: row.feature,
+        strength_score: row.importance,
+      })),
+      customers_most_likely_to_leave: highRisk.rows.map((row) => ({
+        customer: row.customerid,
+        chance_of_leaving: row.churn_probability,
+        contract_type: row.contract,
+        monthly_bill: row.monthlycharges,
+        months_as_customer: row.tenure,
+      })),
     };
 
     const client = new OpenAI({
@@ -121,8 +164,8 @@ export async function POST(request: Request) {
           role: "system",
           content:
             lang === "fr"
-              ? "Vous êtes le chatbot de données Airbyte pour un projet portfolio. Expliquez les insights de churn client en français simple. Utilisez uniquement le contexte fourni. Si la réponse n'est pas dans le contexte, dites quelles données supplémentaires seraient nécessaires."
-              : "You are the Airbyte Data Chatbot for a portfolio project. Explain customer churn insights in simple business English. Use only the provided data context. If the answer is not in the context, say what extra data would be needed.",
+              ? "Vous êtes le chatbot de données Airbyte pour un projet portfolio. Répondez en français simple, comme à un élève de 15 ans. Parlez surtout de clients qui partent au lieu d'utiliser le mot churn, sauf si vous l'expliquez. N'utilisez pas de gras Markdown et ne répétez pas les noms techniques des colonnes sauf si l'utilisateur les demande. Utilisez uniquement le contexte fourni. Si la réponse n'est pas dans le contexte, dites quelles données supplémentaires seraient nécessaires."
+              : "You are the Airbyte Data Chatbot for a portfolio project. Answer in simple English, like you are explaining to a 15-year-old. Prefer saying customers leaving instead of churn unless you define churn. Do not use Markdown bold, and do not repeat technical column names unless the user asks for them. Use only the provided data context. If the answer is not in the context, say what extra data would be needed.",
         },
         {
           role: "user",

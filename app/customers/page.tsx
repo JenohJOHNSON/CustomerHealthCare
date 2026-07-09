@@ -12,9 +12,9 @@ import { hasDatabaseUrl, query } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Customer Analysis | Customer Health Intelligence Pipeline",
+  title: "All Customers | Customer Leaving Risk Dashboard",
   description:
-    "Analyze every customer by churn probability, risk level, contract type, services, and revenue at risk.",
+    "See every customer, their chance of leaving, risk level, monthly bill, contract type, and service details.",
 };
 
 type CustomerAnalysisRow = {
@@ -60,59 +60,59 @@ type CustomersData = {
 
 const text = {
   en: {
-    eyebrow: "Customer analysis",
-    title: "All Customer Analysis",
+    eyebrow: "Customer list",
+    title: "All Customers",
     lede:
-      "Review every customer, compare churn risk by segment, and identify where revenue is most exposed.",
+      "See every customer, their chance of leaving, and which groups have the most money at risk.",
     actions: {
       dashboard: "Dashboard",
-      about: "About Project",
+      about: "How It Works",
     },
     setup: {
-      title: "Setup needed:",
+      title: "Setup still needed:",
       body:
-        "Add DATABASE_URL to Vercel, then run Airbyte and the GitHub Actions pipeline so the customer analytics tables exist.",
+        "Add DATABASE_URL to Vercel, then run Airbyte and the Python data job so the customer table is ready.",
     },
     error: {
-      title: "Customer analysis queries failed.",
+      title: "The customer table is not ready yet.",
       body:
-        "Confirm that analytics.customer_health and analytics.churn_predictions exist.",
+        "Run the Python data job again, then refresh this page.",
     },
     cards: {
-      total: "Total customers",
-      highRisk: "High-risk customers",
-      avgRisk: "Average churn risk",
-      revenue: "Monthly revenue at risk",
+      total: "Customers",
+      highRisk: "Likely to leave",
+      avgRisk: "Average chance of leaving",
+      revenue: "Monthly bill at risk",
     },
     segmentHeaders: {
-      segment: "Segment",
+      segment: "Group",
       customers: "Customers",
-      avgRisk: "Avg Risk",
-      revenue: "Revenue At Risk",
+      avgRisk: "Average Chance",
+      revenue: "Monthly Bill At Risk",
     },
     segments: {
-      risk: "Risk Level Breakdown",
-      contract: "Risk By Contract",
-      internet: "Risk By Internet Service",
-      empty: "This segment will appear after the pipeline runs.",
+      risk: "Groups By Risk Level",
+      contract: "Groups By Contract Type",
+      internet: "Groups By Internet Type",
+      empty: "This group will appear after the data pipeline runs.",
     },
-    customersTitle: "All Customers",
+    customersTitle: "Every Customer",
     customersDescription:
-      "Ordered from highest predicted churn risk to lowest. Use this table to spot customers who may need retention attention first.",
+      "Sorted from highest chance of leaving to lowest. Start at the top when deciding who may need help first.",
     rows: "rows",
     emptyCustomers:
-      "Customer rows will appear here after the pipeline writes analytics.churn_predictions.",
+      "Customer rows will appear here after the prediction table is ready.",
     table: {
-      customerId: "Customer ID",
-      risk: "Risk",
-      probability: "Churn Probability",
-      monthly: "Monthly Charges",
-      total: "Total Charges",
-      contract: "Contract",
-      tenure: "Tenure",
-      actualChurn: "Actual Churn",
-      internet: "Internet Service",
-      payment: "Payment Method",
+      customerId: "Customer",
+      risk: "Risk Level",
+      probability: "Chance of Leaving",
+      monthly: "Monthly Bill",
+      total: "Total Paid",
+      contract: "Contract Type",
+      tenure: "Months as Customer",
+      actualChurn: "Actually Left",
+      internet: "Internet Type",
+      payment: "Payment Type",
     },
     risks: {
       High: "High",
@@ -122,59 +122,59 @@ const text = {
     unknown: "Unknown",
   },
   fr: {
-    eyebrow: "Analyse client",
-    title: "Analyse de tous les clients",
+    eyebrow: "Liste des clients",
+    title: "Tous les clients",
     lede:
-      "Consultez chaque client, comparez le risque de churn par segment et identifiez où le revenu est le plus exposé.",
+      "Consultez chaque client, sa chance de partir et les groupes où le plus d'argent est à risque.",
     actions: {
       dashboard: "Tableau de bord",
-      about: "À propos",
+      about: "Comment ça marche",
     },
     setup: {
-      title: "Configuration requise :",
+      title: "Configuration encore nécessaire :",
       body:
-        "Ajoutez DATABASE_URL dans Vercel, puis lancez Airbyte et le pipeline GitHub Actions afin que les tables analytics client existent.",
+        "Ajoutez DATABASE_URL dans Vercel, puis lancez Airbyte et le travail Python afin que la table client soit prête.",
     },
     error: {
-      title: "Les requêtes d'analyse client ont échoué.",
+      title: "La table client n'est pas encore prête.",
       body:
-        "Confirmez que analytics.customer_health et analytics.churn_predictions existent.",
+        "Relancez le travail Python, puis actualisez cette page.",
     },
     cards: {
-      total: "Clients totaux",
-      highRisk: "Clients à haut risque",
-      avgRisk: "Risque moyen de churn",
-      revenue: "Revenu mensuel à risque",
+      total: "Clients",
+      highRisk: "Susceptibles de partir",
+      avgRisk: "Chance moyenne de partir",
+      revenue: "Facture mensuelle à risque",
     },
     segmentHeaders: {
-      segment: "Segment",
+      segment: "Groupe",
       customers: "Clients",
-      avgRisk: "Risque moyen",
-      revenue: "Revenu à risque",
+      avgRisk: "Chance moyenne",
+      revenue: "Facture mensuelle à risque",
     },
     segments: {
-      risk: "Répartition par niveau de risque",
-      contract: "Risque par contrat",
-      internet: "Risque par service internet",
-      empty: "Ce segment apparaîtra après l'exécution du pipeline.",
+      risk: "Groupes par niveau de risque",
+      contract: "Groupes par type de contrat",
+      internet: "Groupes par type d'internet",
+      empty: "Ce groupe apparaîtra après l'exécution du pipeline.",
     },
     customersTitle: "Tous les clients",
     customersDescription:
-      "Classés du risque de churn prédit le plus élevé au plus faible. Utilisez cette table pour repérer les clients à traiter en priorité.",
+      "Classés de la chance de départ la plus élevée à la plus faible. Commencez en haut pour voir qui peut avoir besoin d'aide en priorité.",
     rows: "lignes",
     emptyCustomers:
-      "Les lignes client apparaîtront ici après l'écriture de analytics.churn_predictions par le pipeline.",
+      "Les lignes client apparaîtront ici après la création de la table de prédiction.",
     table: {
-      customerId: "ID client",
-      risk: "Risque",
-      probability: "Probabilité de churn",
-      monthly: "Charges mensuelles",
-      total: "Charges totales",
-      contract: "Contrat",
-      tenure: "Ancienneté",
-      actualChurn: "Churn réel",
-      internet: "Service internet",
-      payment: "Méthode de paiement",
+      customerId: "Client",
+      risk: "Niveau de risque",
+      probability: "Chance de partir",
+      monthly: "Facture mensuelle",
+      total: "Total payé",
+      contract: "Type de contrat",
+      tenure: "Mois comme client",
+      actualChurn: "Est vraiment parti",
+      internet: "Type d'internet",
+      payment: "Type de paiement",
     },
     risks: {
       High: "Élevé",
@@ -219,6 +219,15 @@ function riskClass(riskLevel: string) {
 function translatedRisk(riskLevel: string, lang: Lang) {
   const key = riskLevel as keyof (typeof text)["en"]["risks"];
   return text[lang].risks[key] ?? riskLevel;
+}
+
+function displayYesNo(value: string | null | undefined, lang: Lang) {
+  const normalized = value?.trim().toLowerCase();
+
+  if (normalized === "yes") return lang === "fr" ? "Oui" : "Yes";
+  if (normalized === "no") return lang === "fr" ? "Non" : "No";
+
+  return value || text[lang].unknown;
 }
 
 function displaySegment(segment: string, lang: Lang) {
@@ -499,7 +508,7 @@ export default async function CustomersPage({ searchParams }: LangPageProps) {
                       <td>{money(customer.totalcharges, lang)}</td>
                       <td>{customer.contract}</td>
                       <td>{wholeNumber(customer.tenure, lang)}</td>
-                      <td>{customer.churn}</td>
+                      <td>{displayYesNo(customer.churn, lang)}</td>
                       <td>{customer.internetservice || copy.unknown}</td>
                       <td>{customer.paymentmethod || copy.unknown}</td>
                     </tr>

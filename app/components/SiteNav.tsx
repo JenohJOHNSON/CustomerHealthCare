@@ -7,7 +7,7 @@ const labels = {
     navigation: "Main navigation",
     dashboard: "Dashboard",
     customers: "Customers",
-    about: "About",
+    about: "How It Works",
     language: "Language",
   },
   fr: {
@@ -15,7 +15,7 @@ const labels = {
     navigation: "Navigation principale",
     dashboard: "Tableau de bord",
     customers: "Clients",
-    about: "À propos",
+    about: "Comment ça marche",
     language: "Langue",
   },
 };
