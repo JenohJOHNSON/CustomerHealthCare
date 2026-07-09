@@ -93,7 +93,7 @@ const text = {
         meaning:
           "How well the model ranks churn-risk customers above lower-risk customers.",
         calculation:
-          "Area under the ROC curve. 0.5 is random guessing, and 1.0 is perfect ranking.",
+          "Area under the ROC curve. 50% is random guessing, and 100% is perfect ranking.",
       },
     },
   },
@@ -179,7 +179,7 @@ const text = {
         meaning:
           "La capacité du modèle à classer les clients à risque de churn au-dessus des clients moins risqués.",
         calculation:
-          "Aire sous la courbe ROC. 0,5 correspond au hasard, et 1,0 à un classement parfait.",
+          "Aire sous la courbe ROC. 50% correspond au hasard, et 100% à un classement parfait.",
       },
     },
   },
@@ -222,10 +222,11 @@ function formatMetricValue(metric: string, value: string | number, lang: Lang) {
   }
 
   if (metric.startsWith("model_")) {
-    return numeric.toLocaleString(locale, {
-      maximumFractionDigits: 3,
-      minimumFractionDigits: 3,
-    });
+    const score = numeric <= 1 ? numeric * 100 : numeric;
+
+    return `${score.toLocaleString(locale, {
+      maximumFractionDigits: 1,
+    })}%`;
   }
 
   return numeric.toLocaleString(locale, {
@@ -254,7 +255,9 @@ function percentCount(value: number, lang: Lang) {
 }
 
 function modelPercent(value: number, lang: Lang) {
-  return `${(value * 100).toLocaleString(localeFor(lang), {
+  const score = value <= 1 ? value * 100 : value;
+
+  return `${score.toLocaleString(localeFor(lang), {
     maximumFractionDigits: 1,
   })}%`;
 }
@@ -286,9 +289,9 @@ function explainValue(metric: string, value: string | number, formatted: string,
       case "model_recall":
         return `${formatted} signifie que le modèle a retrouvé environ ${modelPercent(numeric, lang)} des vrais clients churn dans le test.`;
       case "model_f1":
-        return `${formatted} résume l'équilibre entre précision et rappel. Plus le score est proche de 1, meilleur est cet équilibre.`;
+        return `${formatted} résume l'équilibre entre précision et rappel. Plus le score est proche de 100%, meilleur est cet équilibre.`;
       case "model_roc_auc":
-        return `${formatted} montre la qualité du classement du modèle. Plus ce nombre est proche de 1, mieux le modèle sépare les clients à risque des autres.`;
+        return `${formatted} montre la qualité du classement du modèle. Plus ce nombre est proche de 100%, mieux le modèle sépare les clients à risque des autres.`;
       default:
         return `${formatted} est la valeur actuelle écrite par le pipeline analytics pour ce KPI.`;
     }
@@ -312,9 +315,9 @@ function explainValue(metric: string, value: string | number, formatted: string,
     case "model_recall":
       return `${formatted} means the model found about ${modelPercent(numeric, lang)} of the true churn customers in the test set.`;
     case "model_f1":
-      return `${formatted} summarizes the balance between precision and recall. Closer to 1 means a stronger balance.`;
+      return `${formatted} summarizes the balance between precision and recall. Closer to 100% means a stronger balance.`;
     case "model_roc_auc":
-      return `${formatted} shows ranking quality. Closer to 1 means the model is better at ranking high-risk customers above lower-risk customers.`;
+      return `${formatted} shows ranking quality. Closer to 100% means the model is better at ranking high-risk customers above lower-risk customers.`;
     default:
       return `${formatted} is the current value written by the analytics pipeline for this KPI.`;
   }
