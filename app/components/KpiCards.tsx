@@ -330,6 +330,7 @@ function wholeNumber(value: number, lang: Lang) {
 }
 
 function buildEvaluationSummary(rows: ModelEvaluationRow[]): EvaluationSummary | null {
+  // Convert metric/value rows from analytics.model_evaluation into named values.
   const values = rows.reduce<Record<string, number>>((accumulator, row) => {
     const value = Number(row.value);
 
@@ -373,6 +374,7 @@ function isCloseTo(value: string | number | undefined, expected: number) {
 }
 
 function matchesLatestCheckedRun(kpiValues: Record<string, string | number>) {
+  // Fallback keeps the popup useful until the new model_evaluation table exists.
   return (
     isCloseTo(kpiValues.model_accuracy, 0.7939) &&
     isCloseTo(kpiValues.model_precision, 0.6313) &&
@@ -394,6 +396,7 @@ function modelFormula({
   metric: string;
   value: string | number;
 }) {
+  // Show the exact formula behind each model KPI using this run's counts.
   const numeric = numericValue(value) ?? 0;
   const result = modelPercent(numeric, lang);
   const testRows = wholeNumber(evaluation.testRows, lang);

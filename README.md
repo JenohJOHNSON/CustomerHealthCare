@@ -315,6 +315,23 @@ Key preparation steps:
 
 The model uses scikit-learn `LogisticRegression` inside a pipeline. Logistic regression is used because churn is a binary classification problem: the customer either churns or does not churn. It is a good first model because it is fast, interpretable, and produces churn probabilities.
 
+### ML Functions Used
+
+- `train_test_split`: separates 25% of customers as unseen test data so model scores are measured fairly.
+- `ColumnTransformer`: sends numeric and text columns through different preparation steps in one clean object.
+- `StandardScaler`: scales numeric columns so logistic regression can compare features on a similar range.
+- `OneHotEncoder`: converts text categories like contract type into numeric 0/1 columns.
+- `Pipeline`: keeps preprocessing and model training together so training and prediction use the same steps.
+- `LogisticRegression`: predicts churn vs no churn and returns churn probabilities plus interpretable coefficients.
+- `predict`: produces the final churn/no-churn class on test rows.
+- `predict_proba`: produces churn probability scores used for risk levels.
+- `confusion_matrix`: counts true negatives, false positives, false negatives, and true positives.
+- `accuracy_score`: measures overall correctness.
+- `precision_score`: measures how often churn warnings are correct.
+- `recall_score`: measures how many real churn customers were found.
+- `f1_score`: balances precision and recall into one score.
+- `roc_auc_score`: measures how well probabilities rank churn-risk customers above lower-risk customers.
+
 Risk levels are assigned from the predicted churn probability:
 
 ```text

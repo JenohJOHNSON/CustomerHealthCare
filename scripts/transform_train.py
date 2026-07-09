@@ -84,6 +84,7 @@ def read_raw_table(engine) -> pd.DataFrame:
 
 
 def make_one_hot_encoder():
+    # One-hot encoding turns text categories into 0/1 columns the model can read.
     try:
         return OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     except TypeError:
@@ -148,12 +149,14 @@ def prepare_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     for column in text_columns:
         df[column] = df[column].fillna("Unknown").astype(str).str.strip()
 
+    # Target variable: 1 means churn, 0 means no churn. The model learns this.
     df["churn_flag"] = (
         df["churn"].str.lower().map({"yes": 1, "no": 0}).astype("float")
     )
     df = df[df["churn_flag"].notna()].copy()
     df["churn_flag"] = df["churn_flag"].astype(int)
 
+    # Simple engineered features give the model clearer business signals.
     df["is_month_to_month"] = (
         df["contract"].str.lower() == "month-to-month"
     ).astype(int)
@@ -164,28 +167,37 @@ def prepare_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def train_model(df: pd.DataFrame):
     drop_cols = ["customerid", "churn", "churn_flag"]
+    # X contains input features; y contains the true answer the model must learn.
     x = df.drop(columns=drop_cols, errors="ignore")
     y = df["churn_flag"]
 
     x = x.select_dtypes(include=["number", "object", "bool"])
 
+    # Numeric and text features need different preparation before training.
     numeric_features = x.select_dtypes(include=["number", "bool"]).columns.tolist()
     categorical_features = x.select_dtypes(include=["object"]).columns.tolist()
 
+    # ColumnTransformer applies the right preparation to each feature type.
     preprocessor = ColumnTransformer(
         transformers=[
+            # StandardScaler puts numeric values on a similar scale for the linear model.
             ("num", StandardScaler(), numeric_features),
+            # OneHotEncoder converts categories like Contract into model-ready columns.
             ("cat", make_one_hot_encoder(), categorical_features),
         ]
     )
 
+    # Pipeline keeps preprocessing and prediction together for consistent scoring.
     pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
+            # LogisticRegression is a binary classifier: churn Yes vs No.
+            # It is used here because it is fast, interpretable, and gives probabilities.
             ("model", LogisticRegression(max_iter=1000)),
         ]
     )
 
+    # Keep 25% aside as unseen test data so metrics are not measured on training rows.
     x_train, x_test, y_train, y_test = train_test_split(
         x,
         y,
@@ -195,17 +207,23 @@ def train_model(df: pd.DataFrame):
     )
 
     print("Training churn model...")
+    # fit learns the logistic regression coefficients from the training rows.
     pipeline.fit(x_train, y_train)
 
+    # predict gives Yes/No labels; predict_proba gives churn probabilities.
     y_pred = pipeline.predict(x_test)
     y_prob = pipeline.predict_proba(x_test)[:, 1]
+    # Confusion matrix counts correct and wrong churn/no-churn predictions.
     true_negative, false_positive, false_negative, true_positive = confusion_matrix(
         y_test,
         y_pred,
         labels=[0, 1],
     ).ravel()
+    # Baseline shows how well a naive "always no churn" model would do.
     baseline_accuracy = max((y_test == 0).mean(), (y_test == 1).mean())
 
+    # Metrics answer different questions: overall correctness, warning quality,
+    # churn coverage, precision/recall balance, and probability ranking quality.
     metrics = {
         "accuracy": float(accuracy_score(y_test, y_pred)),
         "precision": float(precision_score(y_test, y_pred, zero_division=0)),
@@ -239,12 +257,14 @@ def write_analytics_tables(engine, df: pd.DataFrame, pipeline, x, metrics, evalu
     )
     print("Saved analytics.customer_health")
 
+    # After testing, score every customer so the dashboard can show risk for all rows.
     all_prob = pipeline.predict_proba(x)[:, 1]
 
     predictions = pd.DataFrame(
         {
             "customerid": df["customerid"],
             "churn_probability": all_prob,
+            # Turn raw probabilities into business-friendly risk levels.
             "risk_level": pd.cut(
                 all_prob,
                 bins=[0, 0.4, 0.7, 1.0],
@@ -332,6 +352,7 @@ def write_analytics_tables(engine, df: pd.DataFrame, pipeline, x, metrics, evalu
     )
     print("Saved analytics.model_evaluation")
 
+    # Coefficients are model weights; larger absolute values are stronger drivers.
     feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
     coefficients = pipeline.named_steps["model"].coef_[0]
 
